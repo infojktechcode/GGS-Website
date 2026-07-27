@@ -190,7 +190,8 @@ export default async function handler(req, res) {
       }
 
       case 'seed': {
-        const { Pool } = require('pg')
+        const pg = await import('pg')
+        const { Pool } = pg.default || pg
         const ref = new URL(process.env.SUPABASE_URL).hostname.split('.')[0]
         const pool = new Pool({
           connectionString: `postgresql://postgres.${ref}:${process.env.SUPABASE_SECRET_KEY}@aws-0-us-east-1.pooler.supabase.com:5432/postgres`,
