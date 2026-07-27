@@ -18,13 +18,13 @@ export default function EnquiriesManagePage() {
       const params = new URLSearchParams()
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (search) params.set('search', search)
-      const res = await fetch(`/api/admin/enquiries?${params}`)
+      const res = await fetch(`/api/admin?action=list-enquiries&${params}`)
       setEnquiries(await res.json())
     } catch {} finally { setLoading(false) }
   }
 
   async function updateStatus(id, status) {
-    await fetch('/api/admin/enquiries', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
+    await fetch('/api/admin?action=update-enquiry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
     await load()
   }
 

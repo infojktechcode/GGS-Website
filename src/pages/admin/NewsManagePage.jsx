@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Pencil, Trash2, Loader2, X, Save } from 'lucide-react'
 
-const API = '/api/admin/news'
+const API = '/api/admin'
 
 export default function NewsManagePage() {
   const [items, setItems] = useState([])
@@ -15,7 +15,7 @@ export default function NewsManagePage() {
 
   async function load() {
     try {
-      const res = await fetch(API)
+      const res = await fetch(`${API}?action=list-news`)
       setItems(await res.json())
     } catch {} finally { setLoading(false) }
   }
@@ -33,16 +33,18 @@ export default function NewsManagePage() {
   async function save() {
     setSaving(true)
     try {
-      const method = editing === 'new' ? 'POST' : 'PUT'
-      const body = editing === 'new' ? form : { ...form, id: editing }
-      await fetch(API, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      await fetch(`${API}?action=save-news`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editing === 'new' ? form : { ...form, id: editing }),
+      })
       setEditing(null); await load()
     } catch {} finally { setSaving(false) }
   }
 
   async function remove(id) {
     if (!confirm('Delete this article?')) return
-    await fetch(API, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    await fetch(`${API}?action=delete-news`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     await load()
   }
 

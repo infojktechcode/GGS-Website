@@ -52,7 +52,7 @@ export default function ContentEditorPage() {
 
   async function loadAll() {
     try {
-      const res = await fetch('/api/admin/site-content')
+      const res = await fetch('/api/admin?action=list-content')
       const data = await res.json()
       const map = {}
       data.forEach(item => { map[item.section] = item.data })
@@ -82,8 +82,8 @@ export default function ContentEditorPage() {
     setSaving(true)
     setSuccess('')
     try {
-      await fetch('/api/admin/site-content', {
-        method: 'PUT',
+      await fetch('/api/admin?action=save-content', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: sectionId, data: content[sectionId] || {} }),
       })

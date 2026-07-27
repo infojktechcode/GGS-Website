@@ -11,7 +11,7 @@ export function SiteContentProvider({ children }) {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const res = await fetch(`${API_BASE}/api/public/content`)
+        const res = await fetch(`${API_BASE}/api/public?action=content`)
         if (!res.ok) throw new Error('Failed to fetch')
         const json = await res.json()
         setData(json)

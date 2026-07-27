@@ -11,7 +11,7 @@ export default function SettingsPage() {
 
   async function load() {
     try {
-      const res = await fetch('/api/admin/settings?key=school_info')
+      const res = await fetch('/api/admin?action=get-settings&key=school_info')
       const data = await res.json()
       setSettings(data[0]?.value || {})
     } catch {} finally { setLoading(false) }
@@ -32,8 +32,8 @@ export default function SettingsPage() {
   async function save() {
     setSaving(true)
     try {
-      await fetch('/api/admin/settings', {
-        method: 'PUT',
+      await fetch('/api/admin?action=save-settings', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'school_info', value: settings }),
       })

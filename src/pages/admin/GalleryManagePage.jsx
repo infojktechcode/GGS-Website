@@ -15,7 +15,7 @@ export default function GalleryManagePage() {
 
   async function load() {
     try {
-      const res = await fetch('/api/admin/gallery')
+      const res = await fetch('/api/admin?action=list-gallery')
       const data = await res.json()
       setImages(data.images || [])
       setCategories(data.categories || [])
@@ -30,7 +30,7 @@ export default function GalleryManagePage() {
       const reader = new FileReader()
       reader.onload = async (ev) => {
         const base64 = ev.target.result.split(',')[1]
-        const uploadRes = await fetch('/api/admin/upload', {
+        const uploadRes = await fetch('/api/admin?action=upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bucket: 'gallery', file: base64, fileName: file.name, contentType: file.type }),
@@ -47,7 +47,7 @@ export default function GalleryManagePage() {
     if (!form.src) return
     setUploading(true)
     try {
-      await fetch('/api/admin/gallery', {
+      await fetch('/api/admin?action=save-gallery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, category_id: form.category_id ? parseInt(form.category_id) : null }),
@@ -60,7 +60,7 @@ export default function GalleryManagePage() {
 
   async function remove(id) {
     if (!confirm('Delete this image?')) return
-    await fetch('/api/admin/gallery', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    await fetch('/api/admin?action=delete-gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     await load()
   }
 

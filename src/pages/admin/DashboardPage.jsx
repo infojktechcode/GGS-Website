@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Newspaper, Calendar, Star, Image as ImageIcon, Mail, Users,
-  UserPlus, Settings, TrendingUp, Loader2
+  UserPlus, Settings, Loader2
 } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
@@ -13,26 +12,26 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [
-          { count: news },
-          { count: events },
-          { count: testimonials },
-          { count: messages },
-          { count: enquiries },
-          { count: subscribers },
-          { count: images },
-        ] = await Promise.all([
-          supabase.from('news').select('*', { count: 'exact', head: true }),
-          supabase.from('events').select('*', { count: 'exact', head: true }),
-          supabase.from('testimonials').select('*', { count: 'exact', head: true }),
-          supabase.from('contact_messages').select('*', { count: 'exact', head: true }).eq('is_archived', false),
-          supabase.from('admission_enquiries').select('*', { count: 'exact', head: true }).eq('status', 'new'),
-          supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true }),
-          supabase.from('gallery_images').select('*', { count: 'exact', head: true }),
+        const [newsRes, eventsRes, testimonialsRes, messagesRes, galleryRes, enquiriesRes, subscribersRes] = await Promise.all([
+          fetch('/api/admin?action=list-news').then(r => r.json()),
+          fetch('/api/admin?action=list-events').then(r => r.json()),
+          fetch('/api/admin?action=list-testimonials').then(r => r.json()),
+          fetch('/api/admin?action=list-messages').then(r => r.json()),
+          fetch('/api/admin?action=list-gallery').then(r => r.json()),
+          fetch('/api/admin?action=list-enquiries').then(r => r.json()),
+          fetch('/api/admin?action=list-subscribers').then(r => r.json()),
         ])
-        setStats({ news, events, testimonials, messages, enquiries, subscribers, images })
+        setStats({
+          news: newsRes?.length || 0,
+          events: eventsRes?.length || 0,
+          testimonials: testimonialsRes?.length || 0,
+          messages: messagesRes?.length || 0,
+          images: galleryRes?.images?.length || 0,
+          enquiries: enquiriesRes?.filter(e => e.status === 'new')?.length || 0,
+          subscribers: subscribersRes?.length || 0,
+        })
       } catch {
-        setStats({ news: 0, events: 0, testimonials: 0, messages: 0, enquiries: 0, subscribers: 0, images: 0 })
+        setStats({ news: 0, events: 0, testimonials: 0, messages: 0, images: 0, enquiries: 0, subscribers: 0 })
       } finally { setLoading(false) }
     }
     loadStats()
@@ -46,7 +45,6 @@ export default function AdminDashboard() {
     { label: 'Messages', value: stats?.messages, icon: Mail, color: 'bg-orange-500', bgColor: 'bg-orange-50' },
     { label: 'New Enquiries', value: stats?.enquiries, icon: Users, color: 'bg-rose-500', bgColor: 'bg-rose-50' },
     { label: 'Subscribers', value: stats?.subscribers, icon: UserPlus, color: 'bg-teal-500', bgColor: 'bg-teal-50' },
-    { label: 'Total Content', value: '8', icon: Settings, color: 'bg-indigo-500', bgColor: 'bg-indigo-50' },
   ]
 
   if (loading) return (

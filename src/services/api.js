@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export async function sendContactForm(data) {
-  const response = await fetch(`${API_BASE}/api/contact`, {
+  const response = await fetch(`${API_BASE}/api/public?action=contact`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -11,7 +11,7 @@ export async function sendContactForm(data) {
 }
 
 export async function sendAdmissionEnquiry(data) {
-  const response = await fetch(`${API_BASE}/api/admissions/enquiry`, {
+  const response = await fetch(`${API_BASE}/api/public?action=admission-enquiry`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

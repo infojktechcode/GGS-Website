@@ -10,14 +10,14 @@ export default function SubscribersManagePage() {
 
   async function load() {
     try {
-      const res = await fetch('/api/admin/subscribers')
+      const res = await fetch('/api/admin?action=list-subscribers')
       setSubscribers(await res.json())
     } catch {} finally { setLoading(false) }
   }
 
   async function remove(id) {
     if (!confirm('Remove this subscriber?')) return
-    await fetch('/api/admin/subscribers', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    await fetch('/api/admin?action=delete-subscriber', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     await load()
   }
 

@@ -12,24 +12,24 @@ export default function MessagesManagePage() {
 
   async function load() {
     try {
-      const res = await fetch(`/api/admin/messages?archived=${showArchived}`)
+      const res = await fetch(`/api/admin?action=list-messages&archived=${showArchived}`)
       setMessages(await res.json())
     } catch {} finally { setLoading(false) }
   }
 
   async function markRead(id) {
-    await fetch('/api/admin/messages', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_read: true }) })
+    await fetch('/api/admin?action=update-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_read: true }) })
     await load()
   }
 
   async function toggleArchive(id, is_archived) {
-    await fetch('/api/admin/messages', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_archived }) })
+    await fetch('/api/admin?action=update-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_archived }) })
     setSelected(null); await load()
   }
 
   async function remove(id) {
     if (!confirm('Delete this message?')) return
-    await fetch('/api/admin/messages', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    await fetch('/api/admin?action=delete-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     setSelected(null); await load()
   }
 
