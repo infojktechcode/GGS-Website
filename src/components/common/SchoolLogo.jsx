@@ -5,7 +5,7 @@ export default function SchoolLogo({ textColor = '#0A56B5', size = 'md', showTex
   return (
     <div className="flex items-center gap-3">
       <img
-        src="/ggs-photos/gss logo.png"
+        src="/logo.png"
         alt="Glorious Group of Schools logo"
         height={h}
         width={h * 1.1}
