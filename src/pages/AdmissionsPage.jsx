@@ -11,6 +11,9 @@ import { sendAdmissionEnquiry } from '../services/api'
 
 export default function AdmissionsPage() {
   const admissions = usePageContent('admissions')
+  const processSteps = admissions.process || []
+  const requirements = admissions.requirements || []
+  const faqs = admissions.faqs || []
   const [openFaq, setOpenFaq] = useState(null)
   const [form, setForm] = useState({ name: '', phone: '', email: '', childName: '', childAge: '', grade: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
@@ -57,7 +60,7 @@ export default function AdmissionsPage() {
   return (
     <>
       <SEO title="Admissions" description="Apply to Glorious Group of Schools. Learn about our admission process, requirements, and enroll your child today." />
-      <SchemaMarkup faqs={admissions.faqs} />
+      <SchemaMarkup faqs={faqs} />
 
       <section className="relative pt-32 pb-20 bg-gradient-to-br from-brand-blue to-blue-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: `url(${images.group})` }} />
@@ -73,7 +76,7 @@ export default function AdmissionsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader title="Admission Process" subtitle="Follow these simple steps to enroll your child." />
           <div className="grid md:grid-cols-5 gap-6">
-            {admissions.process.map((step, i) => (
+            {processSteps.map((step, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
@@ -85,7 +88,7 @@ export default function AdmissionsPage() {
                 <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-blue/10 flex items-center justify-center mb-4">
                   <span className="text-2xl font-heading font-bold text-brand-blue">{step.step}</span>
                 </div>
-                {i < admissions.process.length - 1 && (
+                {i < processSteps.length - 1 && (
                   <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 border-t-2 border-dashed border-brand-blue/20" aria-hidden="true" />
                 )}
                 <h3 className="text-lg font-heading font-bold text-dark mb-2">{step.title}</h3>
@@ -102,7 +105,7 @@ export default function AdmissionsPage() {
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <h3 className="text-2xl font-heading font-bold text-dark mb-6">Requirements</h3>
               <ul className="space-y-3">
-                {admissions.requirements.map((r, i) => (
+                {requirements.map((r, i) => (
                   <li key={i} className="flex items-start gap-3 text-gray-700">
                     <CheckCircle size={20} className="text-brand-green shrink-0 mt-0.5" aria-hidden="true" />
                     <span>{r}</span>
@@ -217,7 +220,7 @@ export default function AdmissionsPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader title="Frequently Asked Questions" />
           <div className="space-y-4">
-            {admissions.faqs.map((faq, i) => (
+            {faqs.map((faq, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}

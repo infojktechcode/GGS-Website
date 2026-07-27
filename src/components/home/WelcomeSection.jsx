@@ -6,6 +6,7 @@ import SectionHeader from '../common/SectionHeader'
 export default function WelcomeSection() {
   const welcome = usePageContent('welcome')
   const { schoolInfo } = useSiteContent()
+  const paragraphs = welcome.paragraphs || []
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +19,7 @@ export default function WelcomeSection() {
             transition={{ duration: 0.6 }}
           >
             <div className="space-y-4 text-gray-700 leading-relaxed">
-              {welcome.paragraphs.map((p, i) => (
+              {paragraphs.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
             </div>

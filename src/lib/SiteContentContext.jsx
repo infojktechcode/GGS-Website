@@ -1,31 +1,34 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { siteContent } from '../data/siteContent'
 
 const SiteContentContext = createContext(null)
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
+const empty = { content: {}, news: [], events: [], testimonials: [], galleryImages: [], galleryCategories: [], schoolInfo: null }
+
 export function SiteContentProvider({ children }) {
-  const [data, setData] = useState(null)
+  const [data, setData] = useState({ ...empty, content: siteContent || {}, schoolInfo: siteContent?.schoolInfo || null })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchAll() {
-      try {
-        const res = await fetch(`${API_BASE}/api/public?action=content`)
-        if (!res.ok) throw new Error('Failed to fetch')
-        const json = await res.json()
-        setData(json)
-      } catch {
-        setData({ content: {}, news: [], events: [], testimonials: [], galleryImages: [], galleryCategories: [], schoolInfo: null })
-      } finally {
-        setLoading(false)
-      }
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/public?action=content`)
+      if (!res.ok) throw new Error('Failed to fetch')
+      const json = await res.json()
+      setData({ ...empty, ...json, content: { ...siteContent, ...json.content } })
+    } catch {
+      setData({ ...empty, content: siteContent || {}, schoolInfo: siteContent?.schoolInfo || null })
+    } finally {
+      setLoading(false)
     }
-    fetchAll()
   }, [])
 
+  useEffect(() => { fetchAll() }, [fetchAll])
+
   return (
-    <SiteContentContext.Provider value={{ ...data, loading, refetch: () => setLoading(true) }}>
+    <SiteContentContext.Provider value={{ ...data, loading, refetch: fetchAll }}>
       {children}
     </SiteContentContext.Provider>
   )

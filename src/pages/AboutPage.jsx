@@ -29,6 +29,7 @@ const breadcrumbs = [
 
 export default function AboutPage() {
   const about = usePageContent('about')
+  const { story, mission, vision, coreValues = [], principalMessage = {}, milestones: pageMilestones } = about
   return (
     <>
       <SEO title="About Us" description="Learn about Glorious Group of Schools' history, mission, vision, values, and leadership team." />
@@ -55,7 +56,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="max-w-4xl mx-auto text-gray-700 leading-relaxed text-lg"
           >
-            <p>{about.story}</p>
+            <p>{story}</p>
           </motion.div>
         </div>
       </section>
@@ -73,7 +74,7 @@ export default function AboutPage() {
                 <Target size={28} className="text-brand-blue" />
               </div>
               <h3 className="text-2xl font-heading font-bold text-dark mb-4">Our Mission</h3>
-              <p className="text-gray-700 leading-relaxed">{about.mission}</p>
+              <p className="text-gray-700 leading-relaxed">{mission}</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 30 }}
@@ -85,7 +86,7 @@ export default function AboutPage() {
                 <Eye size={28} className="text-brand-green" />
               </div>
               <h3 className="text-2xl font-heading font-bold text-dark mb-4">Our Vision</h3>
-              <p className="text-gray-700 leading-relaxed">{about.vision}</p>
+              <p className="text-gray-700 leading-relaxed">{vision}</p>
             </motion.div>
           </div>
         </div>
@@ -95,7 +96,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader title="Our Core Values" subtitle="The principles that guide everything we do." />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {about.coreValues.map((v, i) => (
+            {coreValues.map((v, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
@@ -131,10 +132,10 @@ export default function AboutPage() {
               </div>
               <div>
                 <Quote size={32} className="text-brand-green/30 mb-4" aria-hidden="true" />
-                <blockquote className="text-gray-700 leading-relaxed italic">{about.principalMessage.content}</blockquote>
+                <blockquote className="text-gray-700 leading-relaxed italic">{principalMessage.content}</blockquote>
                 <div className="mt-6 pt-6 border-t border-gray-100">
-                  <p className="font-heading font-bold text-dark text-lg">{about.principalMessage.name}</p>
-                  <p className="text-brand-green">{about.principalMessage.title}</p>
+                  <p className="font-heading font-bold text-dark text-lg">{principalMessage.name}</p>
+                  <p className="text-brand-green">{principalMessage.title}</p>
                 </div>
               </div>
             </div>

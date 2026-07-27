@@ -15,6 +15,7 @@ const breadcrumbs = [
 
 export default function AcademicsPage() {
   const academics = usePageContent('academics')
+  const levels = academics.levels || []
   return (
     <>
       <SEO title="Academics" description="Explore our CBC curriculum from Early Years through Junior School. Academic excellence at Glorious Group of Schools." />
@@ -34,7 +35,7 @@ export default function AcademicsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader title="Our Curriculum Levels" subtitle="Age-appropriate, engaging, and challenging programs for every stage." />
           <div className="space-y-16">
-            {academics.levels.map((level, i) => (
+            {levels.map((level, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 40 }}

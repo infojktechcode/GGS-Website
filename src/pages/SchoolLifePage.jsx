@@ -10,6 +10,8 @@ const iconMap = {
 }
 
 export default function SchoolLifePage() {
+  const studentLife = usePageContent('student_life')
+  const items = studentLife.items || []
   return (
     <>
       <SEO title="School Life" description="Explore student life at Glorious Group of Schools. Sports, music, drama, STEM, clubs, and more." />
@@ -28,7 +30,7 @@ export default function SchoolLifePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader title="Activities & Programs" subtitle="A rich variety of opportunities for every student to explore and excel." />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {(usePageContent('student_life').items || []).map((item, i) => (
+            {items.map((item, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}

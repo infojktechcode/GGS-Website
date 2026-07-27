@@ -6,7 +6,7 @@ import { images } from '../utils/images'
 import { useSiteContent } from '../lib/SiteContentContext'
 
 export default function GalleryPage() {
-  const { galleryCategories, galleryImages } = useSiteContent()
+  const { galleryCategories = [], galleryImages = [] } = useSiteContent()
   const [activeCategory, setActiveCategory] = useState('all')
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
