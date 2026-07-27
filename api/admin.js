@@ -190,8 +190,18 @@ export default async function handler(req, res) {
       }
 
       case 'seed': {
-        const supaUrl = process.env.SUPABASE_URL
-        const authHeaders = { 'apikey': process.env.SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`, 'Content-Type': 'application/json' }
+        const tables = ['site_content', 'gallery_categories', 'gallery_images', 'contact_messages', 'admission_enquiries', 'newsletter_subscribers', 'site_settings', 'admin_roles', 'news', 'events', 'testimonials']
+        let refreshed = false
+        const pgConnStr = process.env.PG_CONNECTION_STRING
+        if (pgConnStr) { try { const pg = await import('pg').then(m => m.default); const pool = new pg.Pool({ connectionString: pgConnStr, max: 1, connectionTimeoutMillis: 5000 }); const c = await pool.connect(); await c.query('SELECT supabase_pgrest.refresh_schema_cache()'); c.release(); await pool.end(); refreshed = true } catch {} }
+        const missingTables = []
+        for (const t of tables) {
+          const { data, error } = await supabase.from(t).select('id').limit(1)
+          if (error && error.message?.includes('schema cache')) missingTables.push(t)
+        }
+        if (missingTables.length > 0) {
+          return json(res, { success: false, missingTables, refreshed, fix: 'https://supabase.com/dashboard/project/mowhkxvmntoomljvrosb/sql/new' })
+        }
         const seedContent = [
           { section: 'hero', data: { headline: "Shaping Tomorrow's Leaders Today", subheadline: 'Where academic excellence meets character development in a nurturing Christian environment.' } },
           { section: 'welcome', data: { title: 'Welcome to Glorious Group of Schools', paragraphs: ['At Glorious Group of Schools, we believe every child is a unique gift with unlimited potential. Since our founding, we have been dedicated to providing an exceptional educational experience that nurtures intellectual curiosity, moral integrity, and creative expression.', 'Our CBC-aligned curriculum, combined with dedicated teachers and a supportive community, creates an environment where students thrive academically, socially, and spiritually. We partner with parents to raise confident, compassionate, and capable individuals ready to make a positive impact on the world.'] } },
@@ -205,8 +215,8 @@ export default async function handler(req, res) {
         const resultMap = {}
         for (const item of seedContent) {
           try {
-            const r = await fetch(`${supaUrl}/rest/v1/site_content`, { method: 'POST', headers: { ...authHeaders, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(item) })
-            resultMap[item.section] = { ok: r.ok, status: r.status }
+            const { error } = await supabase.from('site_content').upsert(item, { onConflict: 'section' })
+            resultMap[item.section] = { ok: !error, error: error?.message || null }
           } catch (e) { resultMap[item.section] = { error: e.message } }
         }
         const catSeeds = [
@@ -219,10 +229,10 @@ export default async function handler(req, res) {
           { name: 'Competitions', slug: 'competitions', sort_order: 6 },
         ]
         for (const cat of catSeeds) {
-          try { await fetch(`${supaUrl}/rest/v1/gallery_categories`, { method: 'POST', headers, body: JSON.stringify(cat) }) } catch {}
+          try { await supabase.from('gallery_categories').upsert(cat, { onConflict: 'slug' }) } catch {}
         }
         try {
-          await fetch(`${supaUrl}/rest/v1/site_settings`, { method: 'POST', headers: { ...authHeaders, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ key: 'school_info', value: { name: 'Glorious Group of Schools', motto: 'Education is the key for a better tomorrow', shortDescription: 'Providing quality CBC education from Early Years to Junior School.', address: '123 Glorious Avenue, Off Mombasa Road, Nairobi, Kenya', phones: ['+254 712 345 678', '+254 734 567 890'], emails: ['info@gloriousschools.ac.ke', 'admissions@gloriousschools.ac.ke'], officeHours: 'Monday - Friday: 7:30 AM - 4:30 PM | Saturday: 8:00 AM - 12:00 PM', emergencyContacts: ['+254 722 111 222 (Security)', '+254 733 333 444 (Health Center)'], socialMedia: { facebook: 'https://facebook.com/gloriousgroupofschools', twitter: 'https://twitter.com/gloriousschools', instagram: 'https://instagram.com/gloriousgroupofschools', youtube: 'https://youtube.com/@gloriousschools', linkedin: 'https://linkedin.com/company/glorious-group-of-schools' } } }) })
+          await supabase.from('site_settings').upsert({ key: 'school_info', value: { name: 'Glorious Group of Schools', motto: 'Education is the key for a better tomorrow', shortDescription: 'Providing quality CBC education from Early Years to Junior School.', address: '123 Glorious Avenue, Off Mombasa Road, Nairobi, Kenya', phones: ['+254 712 345 678', '+254 734 567 890'], emails: ['info@gloriousschools.ac.ke', 'admissions@gloriousschools.ac.ke'], officeHours: 'Monday - Friday: 7:30 AM - 4:30 PM | Saturday: 8:00 AM - 12:00 PM', emergencyContacts: ['+254 722 111 222 (Security)', '+254 733 333 444 (Health Center)'], socialMedia: { facebook: 'https://facebook.com/gloriousgroupofschools', twitter: 'https://twitter.com/gloriousschools', instagram: 'https://instagram.com/gloriousgroupofschools', youtube: 'https://youtube.com/@gloriousschools', linkedin: 'https://linkedin.com/company/glorious-group-of-schools' } } }, { onConflict: 'key' })
         } catch {}
         return json(res, { success: true, results: resultMap })
       }
@@ -232,8 +242,10 @@ export default async function handler(req, res) {
         const status = {}
         for (const table of tables) {
           try {
-            const { data, error } = await supabase.from(table).select('*', { count: 'exact', head: true })
-            status[table] = { exists: !error, count: error ? 0 : (data?.length ?? 0), error: error?.message || null }
+            const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true })
+            const schemaError = error?.message
+            const realCount = schemaError ? 0 : (count ?? 0)
+            status[table] = { exists: !schemaError, count: realCount, error: schemaError || null }
           } catch (e) {
             status[table] = { exists: false, error: e.message }
           }
