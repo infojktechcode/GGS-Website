@@ -46,4 +46,4 @@ app.post('/api/admissions/enquiry', async (req, res) => {
   }
 })
 
-export const handler = serverless(app)
+export default serverless(app)
