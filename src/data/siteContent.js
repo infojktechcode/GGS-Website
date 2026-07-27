@@ -217,7 +217,6 @@ export const siteContent = {
     ],
     faqs: [
       { q: 'What is the age requirement for Early Years?', a: 'Children must be at least 3 years old by January 1st of the admission year for Pre-Primary 1, and 4 years old for Pre-Primary 2.' },
-      { q: 'Does the school offer transportation?', a: 'Yes, we provide safe and reliable school transport covering major routes within the city and surrounding areas.' },
       { q: 'What is the student-to-teacher ratio?', a: 'We maintain a favorable student-to-teacher ratio of approximately 20:1 to ensure personalized attention.' },
       { q: 'Are there scholarship opportunities?', a: 'Yes, we offer merit-based and need-based scholarships for deserving students. Please contact the admissions office for details.' },
       { q: 'What extracurricular activities are available?', a: 'We offer a wide range of activities including sports, music, drama, STEM club, debate, journalism, environment club, and more.' },
