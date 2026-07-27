@@ -106,9 +106,14 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} Glorious Group of Schools. All rights reserved.
-          </p>
+          <div className="flex flex-col items-center md:items-start gap-1">
+            <p className="text-gray-500 text-sm">
+              &copy; {new Date().getFullYear()} Glorious Group of Schools. All rights reserved.
+            </p>
+            <p className="text-gray-500 text-xs">
+              Powered by <a href="https://github.com/infojktechcode" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:text-green-400 transition-colors">Jk-Tech-Code</a>
+            </p>
+          </div>
           <div className="flex items-center gap-4">
             <Link to="/privacy-policy" className="text-gray-500 hover:text-brand-green text-sm transition-colors">Privacy Policy</Link>
             <span className="text-gray-600">|</span>
