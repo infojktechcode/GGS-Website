@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { BookOpen } from 'lucide-react'
-import { siteContent } from '../../data/siteContent'
+import { usePageContent } from '../../lib/SiteContentContext'
 import SectionHeader from '../common/SectionHeader'
 
 const levelColors = [
@@ -16,6 +16,7 @@ const levels = [
 ]
 
 export default function AcademicLevels() {
+  const academics = usePageContent('academics')
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,10 +41,10 @@ export default function AcademicLevels() {
               <h3 className="text-2xl font-heading font-bold text-dark mb-2">{level.name}</h3>
               <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${levelColors[i].bg} mb-4`}>{level.age}</span>
               <p className="text-gray-600 leading-relaxed">
-                {siteContent.academics.levels[i]?.description}
+                {academics?.levels?.[i]?.description || ''}
               </p>
               <ul className="mt-4 space-y-2">
-                {siteContent.academics.levels[i]?.highlights?.map((h, j) => (
+                {academics?.levels?.[i]?.highlights?.map((h, j) => (
                   <li key={j} className="flex items-center gap-2 text-sm text-gray-600">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-green shrink-0" aria-hidden="true" />
                     {h}

@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
 import { Trophy, Music, Clapperboard, FlaskConical, Crown, Users2, HandHeart, Bus, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { siteContent } from '../../data/siteContent'
+import { usePageContent } from '../../lib/SiteContentContext'
 import SectionHeader from '../common/SectionHeader'
 
 const iconMap = { Trophy, Music, Clapperboard, FlaskConical, Crown, Users2, HandHeart, Bus }
 
 export default function StudentLifePreview() {
-  const items = siteContent.studentLife.slice(0, 8)
+  const items = usePageContent('student_life')?.items?.slice(0, 8) || []
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

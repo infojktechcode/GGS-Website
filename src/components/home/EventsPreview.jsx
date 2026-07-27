@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
 import { Calendar, Clock, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { siteContent } from '../../data/siteContent'
+import { useSiteContent } from '../../lib/SiteContentContext'
 import SectionHeader from '../common/SectionHeader'
 import Card from '../common/Card'
 
 export default function EventsPreview() {
-  const events = siteContent.upcomingEvents.slice(0, 4)
+  const { events = [] } = useSiteContent()
+  const displayEvents = events.slice(0, 4)
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +16,7 @@ export default function EventsPreview() {
           subtitle="Stay connected with the latest happenings at our school."
         />
         <div className="grid md:grid-cols-2 gap-6">
-          {events.map((event, i) => (
+          {displayEvents.map((event, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}

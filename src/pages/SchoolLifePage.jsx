@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import SEO from '../components/common/SEO'
 import { images } from '../utils/images'
 import SectionHeader from '../components/common/SectionHeader'
-import { siteContent } from '../data/siteContent'
+import { usePageContent } from '../lib/SiteContentContext'
 
 const iconMap = {
   Trophy: '🏆', Music: '🎵', Clapperboard: '🎭', FlaskConical: '🔬',
@@ -28,7 +28,7 @@ export default function SchoolLifePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader title="Activities & Programs" subtitle="A rich variety of opportunities for every student to explore and excel." />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {siteContent.studentLife.map((item, i) => (
+            {(usePageContent('student_life').items || []).map((item, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}

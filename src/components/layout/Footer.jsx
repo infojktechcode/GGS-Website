@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, Phone, MapPin, Clock, CheckCircle } from 'lucide-react'
-import { siteContent } from '../../data/siteContent'
+import { useSiteContent } from '../../lib/SiteContentContext'
 import { navLinks } from '../../data/navigation'
 import SchoolLogo from '../common/SchoolLogo'
 
@@ -15,15 +15,28 @@ const socialIcons = [
 ]
 
 export default function Footer() {
-  const { contact } = siteContent
+  const { schoolInfo = {} } = useSiteContent()
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const [newsletterStatus, setNewsletterStatus] = useState('idle')
 
-  const handleNewsletterSubmit = (e) => {
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault()
     if (!newsletterEmail) return
-    setNewsletterStatus('success')
-    setNewsletterEmail('')
+    try {
+      const res = await fetch('/api/public/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail }),
+      })
+      if (res.ok) {
+        setNewsletterStatus('success')
+        setNewsletterEmail('')
+      } else {
+        setNewsletterStatus('error')
+      }
+    } catch {
+      setNewsletterStatus('error')
+    }
     setTimeout(() => setNewsletterStatus('idle'), 5000)
   }
 
@@ -33,8 +46,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <SchoolLogo textColor="#FFFFFF" size="sm" />
-            <p className="mt-4 text-gray-400 text-sm leading-relaxed">{siteContent.shortDescription}</p>
-            <p className="mt-3 text-brand-green font-semibold text-sm italic">"{siteContent.motto}"</p>
+            <p className="mt-4 text-gray-400 text-sm leading-relaxed">{schoolInfo?.shortDescription || ''}</p>
+            <p className="mt-3 text-brand-green font-semibold text-sm italic">"{schoolInfo?.motto || ''}"</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
@@ -55,23 +68,23 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-gray-400 text-sm">
                 <MapPin size={16} className="mt-1 shrink-0 text-brand-green" aria-hidden="true" />
-                <span>{contact.address}</span>
+                <span>{schoolInfo?.address || ''}</span>
               </li>
               <li className="flex items-center gap-3 text-gray-400 text-sm">
                 <Phone size={16} className="shrink-0 text-brand-green" aria-hidden="true" />
                 <div>
-                  {contact.phones.map((p, i) => <span key={i} className="block">{p}</span>)}
+                  {(schoolInfo?.phones || []).map((p, i) => <span key={i} className="block">{p}</span>)}
                 </div>
               </li>
               <li className="flex items-center gap-3 text-gray-400 text-sm">
                 <Mail size={16} className="shrink-0 text-brand-green" aria-hidden="true" />
                 <div>
-                  {contact.emails.map((e, i) => <span key={i} className="block">{e}</span>)}
+                  {(schoolInfo?.emails || []).map((e, i) => <span key={i} className="block">{e}</span>)}
                 </div>
               </li>
               <li className="flex items-start gap-3 text-gray-400 text-sm">
                 <Clock size={16} className="mt-1 shrink-0 text-brand-green" aria-hidden="true" />
-                <span>{contact.officeHours}</span>
+                <span>{schoolInfo?.officeHours || ''}</span>
               </li>
             </ul>
           </motion.div>
@@ -83,6 +96,10 @@ export default function Footer() {
               <div className="flex items-center gap-2 text-brand-green text-sm">
                 <CheckCircle size={16} />
                 <span>Subscribed successfully!</span>
+              </div>
+            ) : newsletterStatus === 'error' ? (
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <span>Subscription failed. Try again.</span>
               </div>
             ) : (
               <form className="flex flex-col gap-3" onSubmit={handleNewsletterSubmit}>

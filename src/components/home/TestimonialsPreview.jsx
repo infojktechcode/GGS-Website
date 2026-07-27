@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
 import { Star, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { siteContent } from '../../data/siteContent'
+import { useSiteContent } from '../../lib/SiteContentContext'
 import SectionHeader from '../common/SectionHeader'
 import Card from '../common/Card'
 
 export default function TestimonialsPreview() {
-  const testimonials = siteContent.testimonials.slice(0, 3)
+  const { testimonials = [] } = useSiteContent()
+  const displayTestimonials = testimonials.slice(0, 3)
   return (
     <section className="py-20 bg-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +16,7 @@ export default function TestimonialsPreview() {
           subtitle="Hear from our community about their experience at Glorious Group of Schools."
         />
         <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((t, i) => (
+          {displayTestimonials.map((t, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}

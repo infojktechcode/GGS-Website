@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
-import { siteContent } from '../../data/siteContent'
+import { usePageContent, useSiteContent } from '../../lib/SiteContentContext'
 import { images } from '../../utils/images'
 import SectionHeader from '../common/SectionHeader'
 
 export default function WelcomeSection() {
-  const { welcome } = siteContent
+  const welcome = usePageContent('welcome')
+  const { schoolInfo } = useSiteContent()
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,7 +30,7 @@ export default function WelcomeSection() {
               </div>
               <div>
                 <p className="font-semibold text-dark">Our Motto</p>
-                <p className="text-brand-green font-medium italic">"{siteContent.motto}"</p>
+                <p className="text-brand-green font-medium italic">"{schoolInfo?.motto || ''}"</p>
               </div>
             </div>
           </motion.div>

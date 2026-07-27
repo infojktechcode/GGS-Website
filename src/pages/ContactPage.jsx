@@ -4,7 +4,7 @@ import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle, Loader2, Fa
 import SEO from '../components/common/SEO'
 import { images } from '../utils/images'
 import Button from '../components/common/Button'
-import { siteContent } from '../data/siteContent'
+import { useSiteContent } from '../lib/SiteContentContext'
 import { sendContactForm } from '../services/api'
 
 const socialLinks = [
@@ -16,7 +16,7 @@ const socialLinks = [
 ]
 
 export default function ContactPage() {
-  const { contact } = siteContent
+  const { schoolInfo } = useSiteContent()
   const [form, setForm] = useState({ name: '', phone: '', email: '', subject: '', message: '' })
   const [status, setStatus] = useState('idle')
   const [loading, setLoading] = useState(false)
@@ -136,7 +136,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-dark text-sm">Address</p>
-                      <p className="text-gray-600 text-sm">{contact.address}</p>
+                      <p className="text-gray-600 text-sm">{schoolInfo?.address}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -145,7 +145,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-dark text-sm">Phone</p>
-                      {contact.phones.map((p, i) => <p key={i} className="text-gray-600 text-sm">{p}</p>)}
+                      {(schoolInfo?.phones || []).map((p, i) => <p key={i} className="text-gray-600 text-sm">{p}</p>)}
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -154,7 +154,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-dark text-sm">Email</p>
-                      {contact.emails.map((e, i) => <p key={i} className="text-gray-600 text-sm">{e}</p>)}
+                      {(schoolInfo?.emails || []).map((e, i) => <p key={i} className="text-gray-600 text-sm">{e}</p>)}
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -163,7 +163,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-dark text-sm">Office Hours</p>
-                      <p className="text-gray-600 text-sm">{contact.officeHours}</p>
+                      <p className="text-gray-600 text-sm">{schoolInfo?.officeHours}</p>
                     </div>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function ContactPage() {
               <div className="bg-light rounded-2xl p-8 shadow-lg">
                 <h3 className="text-xl font-heading font-bold text-dark mb-4">Emergency Contacts</h3>
                 <div className="space-y-3">
-                  {contact.emergencyContacts.map((ec, i) => (
+                  {(schoolInfo?.emergencyContacts || []).map((ec, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm">
                       <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" aria-hidden="true" />
                       <span className="text-gray-600">{ec}</span>

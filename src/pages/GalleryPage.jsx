@@ -3,15 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import SEO from '../components/common/SEO'
 import { images } from '../utils/images'
-import { galleryCategories, galleryImages } from '../data/gallery'
+import { useSiteContent } from '../lib/SiteContentContext'
 
 export default function GalleryPage() {
+  const { galleryCategories, galleryImages } = useSiteContent()
   const [activeCategory, setActiveCategory] = useState('all')
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
   const filtered = activeCategory === 'all'
-    ? galleryImages
-    : galleryImages.filter(img => img.category === activeCategory)
+    ? (galleryImages || [])
+    : (galleryImages || []).filter(img => img.category === activeCategory)
 
   const openLightbox = (index) => {
     setLightboxIndex(index)

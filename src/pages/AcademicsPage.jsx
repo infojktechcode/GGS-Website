@@ -4,7 +4,7 @@ import SEO from '../components/common/SEO'
 import { images } from '../utils/images'
 import SectionHeader from '../components/common/SectionHeader'
 import SchemaMarkup from '../components/common/SchemaMarkup'
-import { siteContent } from '../data/siteContent'
+import { usePageContent } from '../lib/SiteContentContext'
 
 const levelImages = [images.classroom, images.learning, images.lab]
 
@@ -14,7 +14,7 @@ const breadcrumbs = [
 ]
 
 export default function AcademicsPage() {
-  const { academics } = siteContent
+  const academics = usePageContent('academics')
   return (
     <>
       <SEO title="Academics" description="Explore our CBC curriculum from Early Years through Junior School. Academic excellence at Glorious Group of Schools." />

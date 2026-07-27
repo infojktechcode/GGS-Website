@@ -4,7 +4,7 @@ import SEO from '../components/common/SEO'
 import SectionHeader from '../components/common/SectionHeader'
 import SchemaMarkup from '../components/common/SchemaMarkup'
 import { images } from '../utils/images'
-import { siteContent } from '../data/siteContent'
+import { usePageContent } from '../lib/SiteContentContext'
 
 const milestones = [
   { year: '2011', title: 'School Founded', description: 'Glorious Group of Schools opened its doors with 15 students.' },
@@ -28,7 +28,7 @@ const breadcrumbs = [
 ]
 
 export default function AboutPage() {
-  const { about } = siteContent
+  const about = usePageContent('about')
   return (
     <>
       <SEO title="About Us" description="Learn about Glorious Group of Schools' history, mission, vision, values, and leadership team." />

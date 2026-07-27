@@ -16,10 +16,17 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import TermsPage from './pages/TermsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import AdminLoginPage from './pages/admin/LoginPage'
+import AccessDeniedPage from './pages/admin/AccessDeniedPage'
 import AdminDashboard from './pages/admin/DashboardPage'
+import ContentEditorPage from './pages/admin/ContentEditorPage'
 import NewsManagePage from './pages/admin/NewsManagePage'
 import EventsManagePage from './pages/admin/EventsManagePage'
 import TestimonialsManagePage from './pages/admin/TestimonialsManagePage'
+import GalleryManagePage from './pages/admin/GalleryManagePage'
+import MessagesManagePage from './pages/admin/MessagesManagePage'
+import EnquiriesManagePage from './pages/admin/EnquiriesManagePage'
+import SubscribersManagePage from './pages/admin/SubscribersManagePage'
+import SettingsPage from './pages/admin/SettingsPage'
 
 function AnimatedPage({ children }) {
   return (
@@ -55,11 +62,18 @@ export default function App() {
             <Route path="terms" element={<AnimatedPage><TermsPage /></AnimatedPage>} />
           </Route>
           <Route path="/admin/login" element={<AnimatedPage><AdminLoginPage /></AnimatedPage>} />
+          <Route path="/admin/access-denied" element={<AnimatedPage><AccessDeniedPage /></AnimatedPage>} />
           <Route path="/admin" element={<ProtectedRoute />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="content" element={<ContentEditorPage />} />
             <Route path="news" element={<NewsManagePage />} />
             <Route path="events" element={<EventsManagePage />} />
             <Route path="testimonials" element={<TestimonialsManagePage />} />
+            <Route path="gallery" element={<GalleryManagePage />} />
+            <Route path="messages" element={<MessagesManagePage />} />
+            <Route path="enquiries" element={<EnquiriesManagePage />} />
+            <Route path="subscribers" element={<SubscribersManagePage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
         </Routes>

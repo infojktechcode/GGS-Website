@@ -6,11 +6,11 @@ import { images } from '../utils/images'
 import SectionHeader from '../components/common/SectionHeader'
 import Button from '../components/common/Button'
 import SchemaMarkup from '../components/common/SchemaMarkup'
-import { siteContent } from '../data/siteContent'
+import { usePageContent } from '../lib/SiteContentContext'
 import { sendAdmissionEnquiry } from '../services/api'
 
 export default function AdmissionsPage() {
-  const { admissions } = siteContent
+  const admissions = usePageContent('admissions')
   const [openFaq, setOpenFaq] = useState(null)
   const [form, setForm] = useState({ name: '', phone: '', email: '', childName: '', childAge: '', grade: '', message: '' })
   const [submitted, setSubmitted] = useState(false)

@@ -4,12 +4,13 @@ import SEO from '../components/common/SEO'
 import { images } from '../utils/images'
 import SectionHeader from '../components/common/SectionHeader'
 import Card from '../components/common/Card'
-import { siteContent } from '../data/siteContent'
+import { useSiteContent } from '../lib/SiteContentContext'
 
 export default function TestimonialsPage() {
-  const parents = siteContent.testimonials.filter(t => t.role === 'Parent')
-  const students = siteContent.testimonials.filter(t => t.role === 'Student')
-  const alumni = siteContent.testimonials.filter(t => t.role === 'Alumni')
+  const { testimonials } = useSiteContent()
+  const parents = (testimonials || []).filter(t => t.role === 'Parent')
+  const students = (testimonials || []).filter(t => t.role === 'Student')
+  const alumni = (testimonials || []).filter(t => t.role === 'Alumni')
 
   return (
     <>

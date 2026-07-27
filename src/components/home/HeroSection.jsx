@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, Calendar, Phone } from 'lucide-react'
-import { siteContent } from '../../data/siteContent'
+import { usePageContent, useSiteContent } from '../../lib/SiteContentContext'
 import { images } from '../../utils/images'
 import Button from '../common/Button'
 import SchoolLogo from '../common/SchoolLogo'
 
 export default function HeroSection() {
-  const { hero } = siteContent
+  const hero = usePageContent('hero')
+  const { schoolInfo } = useSiteContent()
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/95 via-brand-blue/90 to-dark/90 z-10" />
@@ -24,7 +25,7 @@ export default function HeroSection() {
               {hero.subheadline}
             </p>
             <p className="text-brand-green font-semibold text-lg mt-3 italic">
-              "{siteContent.motto}"
+              "{schoolInfo?.motto || ''}"
             </p>
             <div className="flex flex-wrap gap-4 mt-10">
               <Button to="/admissions" variant="secondary" size="lg">

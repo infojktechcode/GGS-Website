@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { GraduationCap, Users, BookOpen, Shield, Heart, Monitor, Star } from 'lucide-react'
-import { siteContent } from '../../data/siteContent'
+import { usePageContent } from '../../lib/SiteContentContext'
 import SectionHeader from '../common/SectionHeader'
 
 const iconMap = {
@@ -8,7 +8,7 @@ const iconMap = {
 }
 
 export default function WhyChooseUs() {
-  const items = siteContent.whyChooseUs
+  const items = usePageContent('why_choose_us')?.items || []
   return (
     <section className="py-20 bg-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,15 +1,13 @@
 import { motion } from 'framer-motion'
 import { Calendar, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { siteContent } from '../../data/siteContent'
-import { images } from '../../utils/images'
+import { useSiteContent } from '../../lib/SiteContentContext'
 import SectionHeader from '../common/SectionHeader'
 import Card from '../common/Card'
 
-const newsImages = [images.scienceFair, images.sportsDay, images.enrollment]
-
 export default function NewsPreview() {
-  const news = siteContent.latestNews.slice(0, 3)
+  const { news = [] } = useSiteContent()
+  const displayNews = news.slice(0, 3)
   return (
     <section className="py-20 bg-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +16,7 @@ export default function NewsPreview() {
           subtitle="Keep up with the achievements, events, and announcements from our school community."
         />
         <div className="grid md:grid-cols-3 gap-8">
-          {news.map((article, i) => (
+          {displayNews.map((article, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
@@ -28,7 +26,7 @@ export default function NewsPreview() {
             >
               <Card className="overflow-hidden h-full">
                 <div className="h-48 overflow-hidden">
-                  <img src={newsImages[i]} alt={article.title} className="w-full h-full object-cover" loading="lazy" decoding="async" width={400} height={300} />
+                  <img src={article.image || ''} alt={article.title} className="w-full h-full object-cover" loading="lazy" decoding="async" width={400} height={300} />
                 </div>
                 <div className="p-6">
                   <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-brand-green/10 text-brand-green mb-3">

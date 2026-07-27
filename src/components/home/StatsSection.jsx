@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { siteContent } from '../../data/siteContent'
+import { usePageContent } from '../../lib/SiteContentContext'
 import { images } from '../../utils/images'
 import AnimatedCounter from '../common/AnimatedCounter'
 
 export default function StatsSection() {
+  const { items: stats = [] } = usePageContent('stats')
   return (
     <section className="relative py-20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-brand-blue to-blue-800" />
@@ -19,7 +20,7 @@ export default function StatsSection() {
           <p className="text-white/70 mt-3 max-w-2xl mx-auto">A testament to our commitment to quality education and community impact.</p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-          {siteContent.stats.map((stat, i) => (
+          {stats.map((stat, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
