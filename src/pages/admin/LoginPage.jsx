@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Lock, LogIn, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
@@ -10,8 +10,12 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { user, signIn } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) navigate('/admin', { replace: true })
+  }, [user, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -19,12 +23,10 @@ export default function AdminLoginPage() {
     if (!email || !password) { setError('Email and password are required'); return }
     setLoading(true)
     const { error: authError } = await signIn({ email, password })
-    setLoading(false)
     if (authError) {
       setError(authError.message === 'Invalid login credentials' ? 'Invalid email or password' : authError.message)
-    } else {
-      navigate('/admin')
     }
+    setLoading(false)
   }
 
   return (

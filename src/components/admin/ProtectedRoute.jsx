@@ -1,32 +1,17 @@
-import { useState, useEffect } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../lib/auth'
 import AdminLayout from './AdminLayout'
 
 export default function ProtectedRoute() {
   const { user, loading } = useAuth()
-  const [checking, setChecking] = useState(true)
-  const [hasAccess, setHasAccess] = useState(false)
 
-  useEffect(() => {
-    if (!loading && !user) {
-      setChecking(false)
-      return
-    }
-    if (user) {
-      setHasAccess(true)
-      setChecking(false)
-    }
-  }, [user, loading])
-
-  if (loading || checking) return (
+  if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="animate-spin w-8 h-8 border-4 border-brand-blue border-t-transparent rounded-full" />
     </div>
   )
 
   if (!user) return <Navigate to="/admin/login" replace />
-  if (!hasAccess) return <Navigate to="/admin/access-denied" replace />
 
   return <AdminLayout />
 }
