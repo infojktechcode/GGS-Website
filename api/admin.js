@@ -232,10 +232,10 @@ export default async function handler(req, res) {
         const status = {}
         for (const table of tables) {
           try {
-            const { count } = await supabase.from(table).select('*', { count: 'exact', head: true })
-            status[table] = { exists: true, count: count ?? 0 }
-          } catch {
-            status[table] = { exists: false }
+            const { data, error } = await supabase.from(table).select('*', { count: 'exact', head: true })
+            status[table] = { exists: !error, count: error ? 0 : (data?.length ?? 0), error: error?.message || null }
+          } catch (e) {
+            status[table] = { exists: false, error: e.message }
           }
         }
         return json(res, status)
