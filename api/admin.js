@@ -190,6 +190,8 @@ export default async function handler(req, res) {
       }
 
       case 'seed': {
+        const headers = { 'Content-Type': 'application/json', 'apikey': process.env.SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`, 'Prefer': 'resolution=merge-duplicates' }
+        const supaUrl = `${process.env.SUPABASE_URL}/rest/v1`
         const seedContent = [
           { section: 'hero', data: { headline: "Shaping Tomorrow's Leaders Today", subheadline: 'Where academic excellence meets character development in a nurturing Christian environment.' } },
           { section: 'welcome', data: { title: 'Welcome to Glorious Group of Schools', paragraphs: ['At Glorious Group of Schools, we believe every child is a unique gift with unlimited potential. Since our founding, we have been dedicated to providing an exceptional educational experience that nurtures intellectual curiosity, moral integrity, and creative expression.', 'Our CBC-aligned curriculum, combined with dedicated teachers and a supportive community, creates an environment where students thrive academically, socially, and spiritually. We partner with parents to raise confident, compassionate, and capable individuals ready to make a positive impact on the world.'] } },
@@ -202,8 +204,11 @@ export default async function handler(req, res) {
         ]
         const results = []
         for (const item of seedContent) {
-          const { data, error } = await supabase.from('site_content').upsert(item, { onConflict: 'section' }).select()
-          results.push({ section: item.section, success: !error, error: error?.message })
+          try {
+            const supares = await fetch(`${supaUrl}/site_content`, { method: 'POST', headers, body: JSON.stringify(item) })
+            const body = await supares.text()
+            results.push({ section: item.section, success: supares.ok, error: supares.ok ? null : body })
+          } catch (e) { results.push({ section: item.section, success: false, error: e.message }) }
         }
         const catSeeds = [
           { name: 'All', slug: 'all', sort_order: 0 },
@@ -215,9 +220,11 @@ export default async function handler(req, res) {
           { name: 'Competitions', slug: 'competitions', sort_order: 6 },
         ]
         for (const cat of catSeeds) {
-          await supabase.from('gallery_categories').upsert(cat, { onConflict: 'slug' })
+          try { await fetch(`${supaUrl}/gallery_categories`, { method: 'POST', headers, body: JSON.stringify(cat) }) } catch {}
         }
-        await supabase.from('site_settings').upsert({ key: 'school_info', value: { name: 'Glorious Group of Schools', motto: 'Education is the key for a better tomorrow', shortDescription: 'Providing quality CBC education from Early Years to Junior School.', address: '123 Glorious Avenue, Off Mombasa Road, Nairobi, Kenya', phones: ['+254 712 345 678', '+254 734 567 890'], emails: ['info@gloriousschools.ac.ke', 'admissions@gloriousschools.ac.ke'], officeHours: 'Monday - Friday: 7:30 AM - 4:30 PM | Saturday: 8:00 AM - 12:00 PM', emergencyContacts: ['+254 722 111 222 (Security)', '+254 733 333 444 (Health Center)'], socialMedia: { facebook: 'https://facebook.com/gloriousgroupofschools', twitter: 'https://twitter.com/gloriousschools', instagram: 'https://instagram.com/gloriousgroupofschools', youtube: 'https://youtube.com/@gloriousschools', linkedin: 'https://linkedin.com/company/glorious-group-of-schools' } } }, { onConflict: 'key' })
+        try {
+          await fetch(`${supaUrl}/site_settings`, { method: 'POST', headers, body: JSON.stringify({ key: 'school_info', value: { name: 'Glorious Group of Schools', motto: 'Education is the key for a better tomorrow', shortDescription: 'Providing quality CBC education from Early Years to Junior School.', address: '123 Glorious Avenue, Off Mombasa Road, Nairobi, Kenya', phones: ['+254 712 345 678', '+254 734 567 890'], emails: ['info@gloriousschools.ac.ke', 'admissions@gloriousschools.ac.ke'], officeHours: 'Monday - Friday: 7:30 AM - 4:30 PM | Saturday: 8:00 AM - 12:00 PM', emergencyContacts: ['+254 722 111 222 (Security)', '+254 733 333 444 (Health Center)'], socialMedia: { facebook: 'https://facebook.com/gloriousgroupofschools', twitter: 'https://twitter.com/gloriousschools', instagram: 'https://instagram.com/gloriousgroupofschools', youtube: 'https://youtube.com/@gloriousschools', linkedin: 'https://linkedin.com/company/glorious-group-of-schools' } } }) })
+        } catch {}
         return json(res, { success: true, results })
       }
 
