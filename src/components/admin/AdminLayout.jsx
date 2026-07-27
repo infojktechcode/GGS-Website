@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../../lib/auth'
 
 import {
-  LayoutDashboard, Newspaper, Calendar, MessageSquare, Star, Image as ImageIcon,
+  LayoutDashboard, Newspaper, Calendar, Star, Image as ImageIcon,
   Users, Mail, Settings, LogOut, Menu, Home, UserPlus, BookOpen
 } from 'lucide-react'
 

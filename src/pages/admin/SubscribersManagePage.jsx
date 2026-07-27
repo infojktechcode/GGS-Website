@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { Trash2, Download, Loader2, Mail } from 'lucide-react'
 
 export default function SubscribersManagePage() {

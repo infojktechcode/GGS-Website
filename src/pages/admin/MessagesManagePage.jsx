@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Trash2, Archive, Mail, Eye, Loader2 } from 'lucide-react'
+import { Trash2, Archive, Mail, Loader2 } from 'lucide-react'
 
 export default function MessagesManagePage() {
   const [messages, setMessages] = useState([])

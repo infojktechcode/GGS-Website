@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
-import { Calendar, Newspaper, ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Calendar, Newspaper } from 'lucide-react'
 import SEO from '../components/common/SEO'
 import { images } from '../utils/images'
 import { useSiteContent } from '../lib/SiteContentContext'

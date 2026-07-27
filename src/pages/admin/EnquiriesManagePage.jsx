@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Search, Filter, Loader2, ChevronDown, ExternalLink } from 'lucide-react'
+import { Search, Loader2, ChevronDown } from 'lucide-react'
 
 const statuses = ['all', 'new', 'contacted', 'follow_up', 'enrolled', 'closed']
 
@@ -9,8 +8,6 @@ export default function EnquiriesManagePage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState(null)
-
   useEffect(() => { load() }, [statusFilter, search])
 
   async function load() {

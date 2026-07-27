@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Loader2, X, Save, Upload } from 'lucide-react'
+import { Plus, Trash2, Loader2, X, Upload } from 'lucide-react'
 
 export default function GalleryManagePage() {
   const [images, setImages] = useState([])

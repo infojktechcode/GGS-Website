@@ -29,7 +29,7 @@ const breadcrumbs = [
 
 export default function AboutPage() {
   const about = usePageContent('about')
-  const { story, mission, vision, coreValues = [], principalMessage = {}, milestones: pageMilestones } = about
+  const { story, mission, vision, coreValues = [], principalMessage = {} } = about
   return (
     <>
       <SEO title="About Us" description="Learn about Glorious Group of Schools' history, mission, vision, values, and leadership team." />

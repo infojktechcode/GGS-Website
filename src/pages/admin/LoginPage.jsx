@@ -22,11 +22,16 @@ export default function AdminLoginPage() {
     setError('')
     if (!email || !password) { setError('Email and password are required'); return }
     setLoading(true)
-    const { error: authError } = await signIn({ email, password })
-    if (authError) {
-      setError(authError.message === 'Invalid login credentials' ? 'Invalid email or password' : authError.message)
+    try {
+      const { error: authError } = await signIn({ email, password })
+      if (authError) {
+        setError(authError.message === 'Invalid login credentials' ? 'Invalid email or password' : authError.message)
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
