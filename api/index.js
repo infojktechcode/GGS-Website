@@ -6,13 +6,19 @@ import serverless from 'serverless-http'
 const app = express()
 app.use(express.json())
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
-
-const supabase = createClient(supabaseUrl, supabaseSecretKey)
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    supabaseUrl: !!process.env.SUPABASE_URL,
+    supabaseKey: !!(process.env.SUPABASE_SECRET_KEY && process.env.SUPABASE_SECRET_KEY.length > 20),
+  })
+})
 
 app.post('/api/contact', async (req, res) => {
   try {
+    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
+    const supabase = createClient(supabaseUrl, supabaseSecretKey)
     const { name, phone, email, subject, message } = req.body
     const { error } = await supabase.from('contact_messages').insert({
       name, phone, email, subject, message,
@@ -22,12 +28,15 @@ app.post('/api/contact', async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('Contact form error:', err)
-    res.status(500).json({ error: 'Failed to send message' })
+    res.status(500).json({ error: err.message || 'Failed to send message' })
   }
 })
 
 app.post('/api/admissions/enquiry', async (req, res) => {
   try {
+    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
+    const supabase = createClient(supabaseUrl, supabaseSecretKey)
     const { name, phone, email, childName, childAge, grade, message } = req.body
     const { error } = await supabase.from('admission_enquiries').insert({
       parent_name: name,
@@ -42,7 +51,7 @@ app.post('/api/admissions/enquiry', async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('Admission form error:', err)
-    res.status(500).json({ error: 'Failed to submit enquiry' })
+    res.status(500).json({ error: err.message || 'Failed to submit enquiry' })
   }
 })
 
