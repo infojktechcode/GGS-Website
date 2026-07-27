@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import SkipToContent from './components/common/SkipToContent'
 import MainLayout from './layouts/MainLayout'
+import ProtectedRoute from './components/admin/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import AcademicsPage from './pages/AcademicsPage'
@@ -14,6 +15,11 @@ import ContactPage from './pages/ContactPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import TermsPage from './pages/TermsPage'
 import NotFoundPage from './pages/NotFoundPage'
+import AdminLoginPage from './pages/admin/LoginPage'
+import AdminDashboard from './pages/admin/DashboardPage'
+import NewsManagePage from './pages/admin/NewsManagePage'
+import EventsManagePage from './pages/admin/EventsManagePage'
+import TestimonialsManagePage from './pages/admin/TestimonialsManagePage'
 
 function AnimatedPage({ children }) {
   return (
@@ -47,6 +53,13 @@ export default function App() {
             <Route path="contact" element={<AnimatedPage><ContactPage /></AnimatedPage>} />
             <Route path="privacy-policy" element={<AnimatedPage><PrivacyPolicyPage /></AnimatedPage>} />
             <Route path="terms" element={<AnimatedPage><TermsPage /></AnimatedPage>} />
+          </Route>
+          <Route path="/admin/login" element={<AnimatedPage><AdminLoginPage /></AnimatedPage>} />
+          <Route path="/admin" element={<ProtectedRoute />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="news" element={<NewsManagePage />} />
+            <Route path="events" element={<EventsManagePage />} />
+            <Route path="testimonials" element={<TestimonialsManagePage />} />
           </Route>
           <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
         </Routes>
