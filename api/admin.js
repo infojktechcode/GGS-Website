@@ -190,8 +190,18 @@ export default async function handler(req, res) {
       }
 
       case 'seed': {
-        const headers = { 'Content-Type': 'application/json', 'apikey': process.env.SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`, 'Prefer': 'resolution=merge-duplicates' }
-        const supaUrl = `${process.env.SUPABASE_URL}/rest/v1`
+        const { Pool } = require('pg')
+        const ref = new URL(process.env.SUPABASE_URL).hostname.split('.')[0]
+        const pool = new Pool({
+          connectionString: `postgresql://postgres.${ref}:${process.env.SUPABASE_SECRET_KEY}@aws-0-us-east-1.pooler.supabase.com:5432/postgres`,
+          connectionTimeoutMillis: 10000,
+          ssl: { rejectUnauthorized: false },
+        })
+        const ensureTables = async () => {
+          await pool.query(`CREATE TABLE IF NOT EXISTS site_content (id BIGSERIAL PRIMARY KEY, section TEXT UNIQUE NOT NULL, data JSONB NOT NULL DEFAULT '{}', updated_at TIMESTAMPTZ DEFAULT NOW())`)
+          await pool.query(`CREATE TABLE IF NOT EXISTS gallery_categories (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, sort_order INTEGER DEFAULT 0)`)
+        }
+        try { await ensureTables() } catch (e) { return json(res, { error: 'Failed to create tables: ' + e.message }, 500) }
         const seedContent = [
           { section: 'hero', data: { headline: "Shaping Tomorrow's Leaders Today", subheadline: 'Where academic excellence meets character development in a nurturing Christian environment.' } },
           { section: 'welcome', data: { title: 'Welcome to Glorious Group of Schools', paragraphs: ['At Glorious Group of Schools, we believe every child is a unique gift with unlimited potential. Since our founding, we have been dedicated to providing an exceptional educational experience that nurtures intellectual curiosity, moral integrity, and creative expression.', 'Our CBC-aligned curriculum, combined with dedicated teachers and a supportive community, creates an environment where students thrive academically, socially, and spiritually. We partner with parents to raise confident, compassionate, and capable individuals ready to make a positive impact on the world.'] } },
@@ -202,13 +212,8 @@ export default async function handler(req, res) {
           { section: 'academics', data: { levels: [{ name: 'Early Years (Pre-Primary)', ageRange: 'Ages 3 - 5', description: 'Our Early Years program provides a warm, stimulating environment where young learners develop foundational skills through play-based learning, sensory activities, and guided exploration.', highlights: ['Play-based learning', 'Language development', 'Motor skills', 'Socialization', 'Creative arts', 'Biblical foundation'] }, { name: 'Primary School (Grades 1 - 6)', ageRange: 'Ages 6 - 12', description: 'Our Primary program builds on foundational skills with a comprehensive CBC curriculum.', highlights: ['CBC curriculum', 'Integrated learning', 'Character education', 'Sports & arts', 'Technology', 'Community service'] }, { name: 'Junior School (Grades 7 - 9)', ageRange: 'Ages 12 - 15', description: 'Junior School prepares students for the transition to senior secondary education with an enhanced academic program.', highlights: ['Advanced CBC curriculum', 'Leadership development', 'Career guidance', 'STEM focus', 'Debate & public speaking', 'Community outreach'] }], teachingMethodology: 'Our teaching methodology is built on a learner-centered approach that combines direct instruction with inquiry-based learning.', assessment: 'We use a continuous assessment approach including formative assessments, summative evaluations, portfolio assessments, and practical demonstrations.', academicSupport: 'We offer remedial classes, enrichment programs, tutoring, learning resources, counseling, and individualized learning plans.', coCurricular: 'Learning extends beyond the classroom through sports, music, drama, debate, science fairs, art exhibitions, educational trips, community service, and clubs.' } },
           { section: 'admissions', data: { process: [{ step: 1, title: 'Inquiry & Visit', description: 'Contact us or visit our campus to learn about our programs and facilities.' }, { step: 2, title: 'Submit Application', description: 'Complete the application form and submit required documents.' }, { step: 3, title: 'Entrance Assessment', description: 'Students undergo a simple assessment to determine placement.' }, { step: 4, title: 'Admission Offer', description: 'Successful candidates receive an admission letter and fee structure.' }, { step: 5, title: 'Acceptance & Registration', description: 'Pay fees and complete registration to secure your child\'s place.' }], requirements: ['Completed application form', 'Birth certificate (copy)', 'Previous school report cards (last 2 terms)', 'Transfer letter from previous school', '2 passport-size photographs', 'Immunization records', 'Medical report'], faqs: [{ q: 'What is the age requirement for Early Years?', a: 'Children must be at least 3 years old by January 1st of the admission year for Pre-Primary 1, and 4 years old for Pre-Primary 2.' }, { q: 'What is the student-to-teacher ratio?', a: 'We maintain a favorable student-to-teacher ratio of approximately 20:1 to ensure personalized attention.' }, { q: 'Are there scholarship opportunities?', a: 'Yes, we offer merit-based and need-based scholarships for deserving students.' }, { q: 'What extracurricular activities are available?', a: 'We offer a wide range of activities including sports, music, drama, STEM club, debate, journalism, environment club, and more.' }, { q: 'Is the school affiliated with any specific denomination?', a: 'Glorious Group of Schools is a Christian school that welcomes families from all backgrounds while upholding Christian values and principles.' }] } },
         ]
-        const results = []
         for (const item of seedContent) {
-          try {
-            const supares = await fetch(`${supaUrl}/site_content`, { method: 'POST', headers, body: JSON.stringify(item) })
-            const body = await supares.text()
-            results.push({ section: item.section, success: supares.ok, error: supares.ok ? null : body })
-          } catch (e) { results.push({ section: item.section, success: false, error: e.message }) }
+          try { await pool.query('INSERT INTO site_content (section, data) VALUES ($1, $2) ON CONFLICT (section) DO UPDATE SET data = $2', [item.section, JSON.stringify(item.data)]) } catch {}
         }
         const catSeeds = [
           { name: 'All', slug: 'all', sort_order: 0 },
@@ -220,12 +225,13 @@ export default async function handler(req, res) {
           { name: 'Competitions', slug: 'competitions', sort_order: 6 },
         ]
         for (const cat of catSeeds) {
-          try { await fetch(`${supaUrl}/gallery_categories`, { method: 'POST', headers, body: JSON.stringify(cat) }) } catch {}
+          try { await pool.query('INSERT INTO gallery_categories (name, slug, sort_order) VALUES ($1, $2, $3) ON CONFLICT (slug) DO NOTHING', [cat.name, cat.slug, cat.sort_order]) } catch {}
         }
         try {
-          await fetch(`${supaUrl}/site_settings`, { method: 'POST', headers, body: JSON.stringify({ key: 'school_info', value: { name: 'Glorious Group of Schools', motto: 'Education is the key for a better tomorrow', shortDescription: 'Providing quality CBC education from Early Years to Junior School.', address: '123 Glorious Avenue, Off Mombasa Road, Nairobi, Kenya', phones: ['+254 712 345 678', '+254 734 567 890'], emails: ['info@gloriousschools.ac.ke', 'admissions@gloriousschools.ac.ke'], officeHours: 'Monday - Friday: 7:30 AM - 4:30 PM | Saturday: 8:00 AM - 12:00 PM', emergencyContacts: ['+254 722 111 222 (Security)', '+254 733 333 444 (Health Center)'], socialMedia: { facebook: 'https://facebook.com/gloriousgroupofschools', twitter: 'https://twitter.com/gloriousschools', instagram: 'https://instagram.com/gloriousgroupofschools', youtube: 'https://youtube.com/@gloriousschools', linkedin: 'https://linkedin.com/company/glorious-group-of-schools' } } }) })
+          await pool.query("INSERT INTO site_settings (key, value) VALUES ('school_info', $1::jsonb) ON CONFLICT (key) DO UPDATE SET value = $1::jsonb", [JSON.stringify({ name: 'Glorious Group of Schools', motto: 'Education is the key for a better tomorrow', shortDescription: 'Providing quality CBC education from Early Years to Junior School.', address: '123 Glorious Avenue, Off Mombasa Road, Nairobi, Kenya', phones: ['+254 712 345 678', '+254 734 567 890'], emails: ['info@gloriousschools.ac.ke', 'admissions@gloriousschools.ac.ke'], officeHours: 'Monday - Friday: 7:30 AM - 4:30 PM | Saturday: 8:00 AM - 12:00 PM', emergencyContacts: ['+254 722 111 222 (Security)', '+254 733 333 444 (Health Center)'], socialMedia: { facebook: 'https://facebook.com/gloriousgroupofschools', twitter: 'https://twitter.com/gloriousschools', instagram: 'https://instagram.com/gloriousgroupofschools', youtube: 'https://youtube.com/@gloriousschools', linkedin: 'https://linkedin.com/company/glorious-group-of-schools' } })])
         } catch {}
-        return json(res, { success: true, results })
+        await pool.end()
+        return json(res, { success: true })
       }
 
       case 'db-status': {
