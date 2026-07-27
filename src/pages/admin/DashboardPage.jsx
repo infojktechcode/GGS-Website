@@ -12,23 +12,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [newsRes, eventsRes, testimonialsRes, messagesRes, galleryRes, enquiriesRes, subscribersRes] = await Promise.all([
-          fetch('/api/admin?action=list-news').then(r => r.json()),
-          fetch('/api/admin?action=list-events').then(r => r.json()),
-          fetch('/api/admin?action=list-testimonials').then(r => r.json()),
-          fetch('/api/admin?action=list-messages').then(r => r.json()),
-          fetch('/api/admin?action=list-gallery').then(r => r.json()),
-          fetch('/api/admin?action=list-enquiries').then(r => r.json()),
-          fetch('/api/admin?action=list-subscribers').then(r => r.json()),
-        ])
+        const res = await fetch('/api/admin?action=db-status')
+        const json = await res.json()
         setStats({
-          news: newsRes?.length || 0,
-          events: eventsRes?.length || 0,
-          testimonials: testimonialsRes?.length || 0,
-          messages: messagesRes?.length || 0,
-          images: galleryRes?.images?.length || 0,
-          enquiries: enquiriesRes?.filter(e => e.status === 'new')?.length || 0,
-          subscribers: subscribersRes?.length || 0,
+          news: json.news?.count || 0,
+          events: json.events?.count || 0,
+          testimonials: json.testimonials?.count || 0,
+          messages: json.contact_messages?.count || 0,
+          images: json.gallery_images?.count || 0,
+          enquiries: json.admission_enquiries?.count || 0,
+          subscribers: json.newsletter_subscribers?.count || 0,
         })
       } catch {
         setStats({ news: 0, events: 0, testimonials: 0, messages: 0, images: 0, enquiries: 0, subscribers: 0 })
