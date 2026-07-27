@@ -189,6 +189,20 @@ export default async function handler(req, res) {
         return json(res, { success: true, user: data.user.email })
       }
 
+      case 'db-status': {
+        const tables = ['site_content', 'gallery_categories', 'gallery_images', 'contact_messages', 'admission_enquiries', 'newsletter_subscribers', 'site_settings', 'admin_roles', 'news', 'events', 'testimonials']
+        const status = {}
+        for (const table of tables) {
+          try {
+            const { count } = await supabase.from(table).select('*', { count: 'exact', head: true })
+            status[table] = { exists: true, count: count ?? 0 }
+          } catch {
+            status[table] = { exists: false }
+          }
+        }
+        return json(res, status)
+      }
+
       default:
         return json(res, { error: 'Unknown action' }, 400)
     }
