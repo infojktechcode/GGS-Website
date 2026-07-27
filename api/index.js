@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import { createClient } from '@supabase/supabase-js'
+import serverless from 'serverless-http'
 
 const app = express()
 app.use(express.json())
@@ -45,7 +46,4 @@ app.post('/api/admissions/enquiry', async (req, res) => {
   }
 })
 
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
-  console.log(`GGS API server running on port ${PORT}`)
-})
+export const handler = serverless(app)
