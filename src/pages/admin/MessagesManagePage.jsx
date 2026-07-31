@@ -1,35 +1,48 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Archive, Mail, Loader2 } from 'lucide-react'
+import { Trash2, Archive, Mail, Loader2, Search } from 'lucide-react'
+import { adminFetch, adminFetchAll } from '../../services/adminApi'
 
 export default function MessagesManagePage() {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [showArchived, setShowArchived] = useState(false)
   const [selected, setSelected] = useState(null)
+  const [search, setSearch] = useState('')
+  const [readFilter, setReadFilter] = useState('all')
+  const [error, setError] = useState('')
 
-  useEffect(() => { load() }, [showArchived])
+  useEffect(() => { load() }, [showArchived, search, readFilter])
 
   async function load() {
     try {
-      const res = await fetch(`/api/admin?action=list-messages&archived=${showArchived}`)
-      setMessages(await res.json())
-    } catch {} finally { setLoading(false) }
+      const params = { archived: String(showArchived) }
+      if (search) params.search = search
+      if (readFilter !== 'all') params.read = readFilter
+      const data = await adminFetchAll('list-messages', params)
+      setMessages(data)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   async function markRead(id) {
-    await fetch('/api/admin?action=update-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_read: true }) })
-    await load()
+    try {
+      await adminFetch('update-message', { body: { id, is_read: true } })
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   async function toggleArchive(id, is_archived) {
-    await fetch('/api/admin?action=update-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_archived }) })
-    setSelected(null); await load()
+    try {
+      await adminFetch('update-message', { body: { id, is_archived } })
+      setSelected(null); await load()
+    } catch (err) { setError(err.message) }
   }
 
   async function remove(id) {
     if (!confirm('Delete this message?')) return
-    await fetch('/api/admin?action=delete-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    setSelected(null); await load()
+    try {
+      await adminFetch('delete-message', { body: { id } })
+      setSelected(null); await load()
+    } catch (err) { setError(err.message) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-blue" /></div>
@@ -41,6 +54,22 @@ export default function MessagesManagePage() {
         <button onClick={() => setShowArchived(!showArchived)} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${showArchived ? 'bg-gray-200 text-gray-700' : 'bg-brand-blue text-white'}`}>
           {showArchived ? 'View Active' : 'View Archived'}
         </button>
+      </div>
+
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+
+      <div className="flex gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm" />
+        </div>
+        <div className="flex gap-2">
+          {[{ value: 'all', label: 'All' }, { value: 'false', label: 'Unread' }, { value: 'true', label: 'Read' }].map(opt => (
+            <button key={opt.value} onClick={() => setReadFilter(opt.value)} className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${readFilter === opt.value ? 'bg-brand-blue text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

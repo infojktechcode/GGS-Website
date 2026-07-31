@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react'
 import { Trash2, Download, Loader2, Mail } from 'lucide-react'
+import { adminFetch, adminFetchAll } from '../../services/adminApi'
 
 export default function SubscribersManagePage() {
   const [subscribers, setSubscribers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   useEffect(() => { load() }, [])
 
   async function load() {
     try {
-      const res = await fetch('/api/admin?action=list-subscribers')
-      setSubscribers(await res.json())
-    } catch {} finally { setLoading(false) }
+      const data = await adminFetchAll('list-subscribers')
+      setSubscribers(data)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   async function remove(id) {
     if (!confirm('Remove this subscriber?')) return
-    await fetch('/api/admin?action=delete-subscriber', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    await load()
+    try {
+      await adminFetch('delete-subscriber', { body: { id } })
+      setSuccess('Removed')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   function exportCSV() {
@@ -40,6 +47,9 @@ export default function SubscribersManagePage() {
           <Download size={16} /> Export CSV
         </button>
       </div>
+
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+      {success && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-xl text-sm">{success}</div>}
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <table className="w-full">

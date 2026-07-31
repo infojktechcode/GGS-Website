@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Loader2, X, Upload } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, X, Upload, Save } from 'lucide-react'
+import { adminFetch, adminFetchAll, adminUpload } from '../../services/adminApi'
 
 export default function GalleryManagePage() {
   const [images, setImages] = useState([])
@@ -8,18 +9,35 @@ export default function GalleryManagePage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({ title: '', alt: '', src: '', category_id: '' })
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const fileRef = useRef()
 
   useEffect(() => { load() }, [])
 
   async function load() {
     try {
-      const res = await fetch('/api/admin?action=list-gallery')
-      const data = await res.json()
+      const data = await adminFetchAll('list-gallery')
       setImages(data.images || [])
       setCategories(data.categories || [])
-    } catch {} finally { setLoading(false) }
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
+  }
+
+  function openAdd() {
+    setForm({ title: '', alt: '', src: '', category_id: '' })
+    setEditingId(null)
+    setShowForm(true)
+    setError(''); setSuccess('')
+  }
+
+  function openEdit(img) {
+    setForm({ title: img.title || '', alt: img.alt || '', src: img.src, category_id: String(img.category_id || '') })
+    setEditingId(img.id)
+    setShowForm(true)
+    setError(''); setSuccess('')
   }
 
   async function handleFileSelect(e) {
@@ -27,41 +45,37 @@ export default function GalleryManagePage() {
     if (!file) return
     setUploading(true)
     try {
-      const reader = new FileReader()
-      reader.onload = async (ev) => {
-        const base64 = ev.target.result.split(',')[1]
-        const uploadRes = await fetch('/api/admin?action=upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bucket: 'gallery', file: base64, fileName: file.name, contentType: file.type }),
-        })
-        const uploadData = await uploadRes.json()
-        setForm(prev => ({ ...prev, src: uploadData.url }))
-        setUploading(false)
-      }
-      reader.readAsDataURL(file)
-    } catch { setUploading(false) }
+      const url = await adminUpload('gallery', file)
+      setForm(prev => ({ ...prev, src: url }))
+      setSuccess('Image uploaded')
+    } catch (err) { setError(err.message) } finally { setUploading(false) }
   }
 
-  async function addImage() {
-    if (!form.src) return
-    setUploading(true)
+  async function save() {
+    if (!form.src) { setError('Image is required'); return }
+    setSaving(true); setError(''); setSuccess('')
     try {
-      await fetch('/api/admin?action=save-gallery', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, category_id: form.category_id ? parseInt(form.category_id) : null }),
-      })
+      const body = editingId
+        ? { ...form, id: editingId, category_id: form.category_id ? parseInt(form.category_id) : null }
+        : { ...form, category_id: form.category_id ? parseInt(form.category_id) : null }
+      await adminFetch('save-gallery', { body })
       setShowForm(false)
       setForm({ title: '', alt: '', src: '', category_id: '' })
+      setEditingId(null)
+      setSuccess(editingId ? 'Updated' : 'Added')
+      setTimeout(() => setSuccess(''), 3000)
       await load()
-    } catch {} finally { setUploading(false) }
+    } catch (err) { setError(err.message) } finally { setSaving(false) }
   }
 
   async function remove(id) {
     if (!confirm('Delete this image?')) return
-    await fetch('/api/admin?action=delete-gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    await load()
+    try {
+      await adminFetch('delete-gallery', { body: { id } })
+      setSuccess('Deleted')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-blue" /></div>
@@ -70,13 +84,16 @@ export default function GalleryManagePage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-heading font-bold text-dark">Gallery</h1>
-        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"><Plus size={16} /> Add Image</button>
+        <button onClick={openAdd} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"><Plus size={16} /> Add Image</button>
       </div>
 
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+      {success && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-xl text-sm">{success}</div>}
+
       {showForm && (
-        <motion.div initial={{ opacity: 0, y: -10 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-heading font-bold">Add Image</h2>
+            <h2 className="text-lg font-heading font-bold">{editingId ? 'Edit Image' : 'Add Image'}</h2>
             <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={18} /></button>
           </div>
           <div className="space-y-4">
@@ -107,8 +124,9 @@ export default function GalleryManagePage() {
             </div>
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
-              <button onClick={addImage} disabled={uploading || !form.src} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
-                {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Upload
+              <button onClick={save} disabled={saving || !form.src} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+                {saving ? <Loader2 size={14} className="animate-spin" /> : editingId ? <Save size={14} /> : <Upload size={14} />}
+                {saving ? 'Saving...' : editingId ? 'Update' : 'Upload'}
               </button>
             </div>
           </div>
@@ -127,9 +145,14 @@ export default function GalleryManagePage() {
               <p className="text-sm font-medium text-dark truncate">{img.title || 'Untitled'}</p>
               <p className="text-xs text-gray-400">{img.gallery_categories?.name || 'No category'}</p>
             </div>
-            <button onClick={() => remove(img.id)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" aria-label={`Delete ${img.title}`}>
-              <Trash2 size={14} />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={() => openEdit(img)} className="p-1.5 bg-blue-500 text-white rounded-lg" aria-label={`Edit ${img.title}`}>
+                <Pencil size={14} />
+              </button>
+              <button onClick={() => remove(img.id)} className="p-1.5 bg-red-500 text-white rounded-lg" aria-label={`Delete ${img.title}`}>
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
         ))}
       </div>

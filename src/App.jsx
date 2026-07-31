@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import SkipToContent from './components/common/SkipToContent'
+import { usePageTracking } from './components/common/Analytics'
 import MainLayout from './layouts/MainLayout'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 import HomePage from './pages/HomePage'
@@ -43,6 +44,7 @@ function AnimatedPage({ children }) {
 
 export default function App() {
   const location = useLocation()
+  usePageTracking()
   return (
     <>
       <SkipToContent />

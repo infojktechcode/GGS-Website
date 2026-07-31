@@ -9,7 +9,7 @@ export default function MainLayout() {
     <div className="min-h-screen bg-light">
       <SchemaMarkup />
       <Navbar />
-      <main id="main-content">
+      <main id="main-content" aria-label="Main content">
         <Outlet />
       </main>
       <Footer />

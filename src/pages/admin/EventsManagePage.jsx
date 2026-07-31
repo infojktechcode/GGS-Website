@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Pencil, Trash2, Loader2, X, Save } from 'lucide-react'
-
-const API = '/api/admin'
+import { Plus, Pencil, Trash2, Loader2, X, Save, Search } from 'lucide-react'
+import { adminFetch, adminFetchAll } from '../../services/adminApi'
 
 export default function EventsManagePage() {
   const [items, setItems] = useState([])
@@ -10,42 +9,52 @@ export default function EventsManagePage() {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ title: '', date: '', time: '', description: '' })
   const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [search])
 
   async function load() {
     try {
-      const res = await fetch(`${API}?action=list-events`)
-      setItems(await res.json())
-    } catch {} finally { setLoading(false) }
+      const data = await adminFetchAll('list-events', search ? { search } : {})
+      setItems(data)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   function openNew() {
     setForm({ title: '', date: new Date().toISOString().split('T')[0], time: '', description: '' })
     setEditing('new')
+    setError(''); setSuccess('')
   }
 
   function openEdit(item) {
     setForm({ title: item.title, date: item.date, time: item.time || '', description: item.description || '' })
     setEditing(item.id)
+    setError(''); setSuccess('')
   }
 
   async function save() {
-    setSaving(true)
+    if (!form.title) { setError('Title is required'); return }
+    setSaving(true); setError(''); setSuccess('')
     try {
-      await fetch(`${API}?action=save-event`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editing === 'new' ? form : { ...form, id: editing }),
+      await adminFetch('save-event', {
+        body: editing === 'new' ? form : { ...form, id: editing },
       })
-      setEditing(null); await load()
-    } catch {} finally { setSaving(false) }
+      setEditing(null); setSuccess('Saved')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) } finally { setSaving(false) }
   }
 
   async function remove(id) {
     if (!confirm('Delete this event?')) return
-    await fetch(`${API}?action=delete-event`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    await load()
+    try {
+      await adminFetch('delete-event', { body: { id } })
+      setSuccess('Deleted')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-blue" /></div>
@@ -57,8 +66,16 @@ export default function EventsManagePage() {
         <button onClick={openNew} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"><Plus size={16} /> Add Event</button>
       </div>
 
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+      {success && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-xl text-sm">{success}</div>}
+
+      <div className="relative mb-6">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm" />
+      </div>
+
       {editing && (
-        <motion.div initial={{ opacity: 0, y: -10 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-heading font-bold">{editing === 'new' ? 'New Event' : 'Edit Event'}</h2>
             <button onClick={() => setEditing(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={18} /></button>

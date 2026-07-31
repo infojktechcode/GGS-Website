@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Pencil, Trash2, Loader2, X, Save, Star } from 'lucide-react'
-
-const API = '/api/admin'
+import { adminFetch, adminFetchAll } from '../../services/adminApi'
 
 export default function TestimonialsManagePage() {
   const [items, setItems] = useState([])
@@ -10,43 +9,51 @@ export default function TestimonialsManagePage() {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ name: '', role: 'Parent', content: '', rating: 5 })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   useEffect(() => { load() }, [])
 
   async function load() {
     try {
-      const res = await fetch(`${API}?action=list-testimonials`)
-      setItems(await res.json())
-    } catch {} finally { setLoading(false) }
+      const data = await adminFetchAll('list-testimonials')
+      setItems(data)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   function openNew() {
     setForm({ name: '', role: 'Parent', content: '', rating: 5 })
     setEditing('new')
+    setError(''); setSuccess('')
   }
 
   function openEdit(item) {
     setForm({ name: item.name, role: item.role, content: item.content, rating: item.rating || 5 })
     setEditing(item.id)
+    setError(''); setSuccess('')
   }
 
   async function save() {
-    if (!form.name || !form.content) return
-    setSaving(true)
+    if (!form.name || !form.content) { setError('Name and content are required'); return }
+    setSaving(true); setError(''); setSuccess('')
     try {
-      await fetch(`${API}?action=save-testimonial`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editing === 'new' ? form : { ...form, id: editing }),
+      await adminFetch('save-testimonial', {
+        body: editing === 'new' ? form : { ...form, id: editing },
       })
-      setEditing(null); await load()
-    } catch {} finally { setSaving(false) }
+      setEditing(null); setSuccess('Saved')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) } finally { setSaving(false) }
   }
 
   async function remove(id) {
     if (!confirm('Delete this testimonial?')) return
-    await fetch(`${API}?action=delete-testimonial`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    await load()
+    try {
+      await adminFetch('delete-testimonial', { body: { id } })
+      setSuccess('Deleted')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-blue" /></div>
@@ -58,8 +65,11 @@ export default function TestimonialsManagePage() {
         <button onClick={openNew} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"><Plus size={16} /> Add Testimonial</button>
       </div>
 
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+      {success && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-xl text-sm">{success}</div>}
+
       {editing && (
-        <motion.div initial={{ opacity: 0, y: -10 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-heading font-bold">{editing === 'new' ? 'New Testimonial' : 'Edit Testimonial'}</h2>
             <button onClick={() => setEditing(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={18} /></button>

@@ -4,64 +4,66 @@
     <loc>https://gloriousgroupofschools.com/</loc>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/about</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/academics</loc>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/admissions</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/school-life</loc>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/gallery</loc>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/news</loc>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
     <changefreq>weekly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/testimonials</loc>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/contact</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
-    <lastmod>2026-07-25</lastmod>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/privacy-policy</loc>
-    <priority>0.3</priority>
+    <priority>0.4</priority>
     <changefreq>yearly</changefreq>
+    <lastmod>2026-07-30</lastmod>
   </url>
   <url>
     <loc>https://gloriousgroupofschools.com/terms</loc>
-    <priority>0.3</priority>
+    <priority>0.4</priority>
     <changefreq>yearly</changefreq>
+    <lastmod>2026-07-30</lastmod>
   </url>
 </urlset>

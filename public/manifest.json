@@ -1,0 +1,26 @@
+{
+  "name": "Glorious Group of Schools",
+  "short_name": "Glorious Schools",
+  "description": "Quality CBC education from Early Years to Junior School. Shaping tomorrow's leaders through academic excellence and holistic development.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0A56B5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education"],
+  "lang": "en-KE"
+}

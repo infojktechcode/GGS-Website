@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { adminFetch, adminFetchAll } from '../../services/adminApi'
 
 const sections = [
   { id: 'hero', label: 'Hero Section', fields: [
@@ -46,18 +47,18 @@ export default function ContentEditorPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [openSection, setOpenSection] = useState('hero')
+  const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
   useEffect(() => { loadAll() }, [])
 
   async function loadAll() {
     try {
-      const res = await fetch('/api/admin?action=list-content')
-      const data = await res.json()
+      const data = await adminFetchAll('list-content')
       const map = {}
       data.forEach(item => { map[item.section] = item.data })
       setContent(map)
-    } catch {} finally { setLoading(false) }
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   function updateField(section, key, value) {
@@ -80,16 +81,14 @@ export default function ContentEditorPage() {
 
   async function saveSection(sectionId) {
     setSaving(true)
-    setSuccess('')
+    setError(''); setSuccess('')
     try {
-      await fetch('/api/admin?action=save-content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section: sectionId, data: content[sectionId] || {} }),
+      await adminFetch('save-content', {
+        body: { section: sectionId, data: content[sectionId] || {} },
       })
-      setSuccess(`${sectionId} saved!`)
+      setSuccess(`${sections.find(s => s.id === sectionId)?.label || sectionId} saved!`)
       setTimeout(() => setSuccess(''), 3000)
-    } catch {} finally { setSaving(false) }
+    } catch (err) { setError(err.message) } finally { setSaving(false) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-blue" /></div>
@@ -100,6 +99,7 @@ export default function ContentEditorPage() {
         <h1 className="text-2xl font-heading font-bold text-dark">Site Content Editor</h1>
       </div>
 
+      {error && <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
       {success && (
         <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-xl text-sm">{success}</div>
       )}

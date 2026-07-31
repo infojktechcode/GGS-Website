@@ -1,51 +1,82 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Pencil, Trash2, Loader2, X, Save } from 'lucide-react'
-
-const API = '/api/admin'
+import { Plus, Pencil, Trash2, Loader2, X, Save, Search, Eye, EyeOff } from 'lucide-react'
+import { adminFetch, adminFetchAll, adminUpload } from '../../services/adminApi'
 
 export default function NewsManagePage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ title: '', excerpt: '', content: '', date: '', category: 'General', image: '' })
+  const [form, setForm] = useState({ title: '', excerpt: '', content: '', date: '', category: 'General', image: '', published: true })
   const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const fileRef = useRef()
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [search])
 
   async function load() {
     try {
-      const res = await fetch(`${API}?action=list-news`)
-      setItems(await res.json())
-    } catch {} finally { setLoading(false) }
+      const data = await adminFetchAll('list-news', search ? { search } : {})
+      setItems(data)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   function openNew() {
-    setForm({ title: '', excerpt: '', content: '', date: new Date().toISOString().split('T')[0], category: 'General', image: '' })
+    setForm({ title: '', excerpt: '', content: '', date: new Date().toISOString().split('T')[0], category: 'General', image: '', published: true })
     setEditing('new')
+    setError(''); setSuccess('')
   }
 
   function openEdit(item) {
-    setForm({ title: item.title, excerpt: item.excerpt || '', content: item.content || '', date: item.date, category: item.category, image: item.image || '' })
+    setForm({ title: item.title, excerpt: item.excerpt || '', content: item.content || '', date: item.date, category: item.category, image: item.image || '', published: item.published ?? true })
     setEditing(item.id)
+    setError(''); setSuccess('')
+  }
+
+  async function handleFileSelect(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await adminUpload('news', file)
+      setForm(prev => ({ ...prev, image: url }))
+      setSuccess('Image uploaded')
+    } catch (err) { setError(err.message) } finally { setUploading(false) }
   }
 
   async function save() {
-    setSaving(true)
+    if (!form.title) { setError('Title is required'); return }
+    setSaving(true); setError(''); setSuccess('')
     try {
-      await fetch(`${API}?action=save-news`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editing === 'new' ? form : { ...form, id: editing }),
+      await adminFetch('save-news', {
+        body: editing === 'new' ? form : { ...form, id: editing },
       })
-      setEditing(null); await load()
-    } catch {} finally { setSaving(false) }
+      setEditing(null); setSuccess('Saved successfully')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) } finally { setSaving(false) }
+  }
+
+  async function togglePublish(item) {
+    try {
+      await adminFetch('toggle-publish-news', {
+        body: { id: item.id, published: !item.published },
+      })
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   async function remove(id) {
     if (!confirm('Delete this article?')) return
-    await fetch(`${API}?action=delete-news`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    await load()
+    try {
+      await adminFetch('delete-news', { body: { id } })
+      setSuccess('Deleted')
+      setTimeout(() => setSuccess(''), 3000)
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-blue" /></div>
@@ -57,8 +88,16 @@ export default function NewsManagePage() {
         <button onClick={openNew} className="px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"><Plus size={16} /> Add News</button>
       </div>
 
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
+      {success && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-xl text-sm">{success}</div>}
+
+      <div className="relative mb-6">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search news..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm" />
+      </div>
+
       {editing && (
-        <motion.div initial={{ opacity: 0, y: -10 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 shadow-lg mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-heading font-bold">{editing === 'new' ? 'New Article' : 'Edit Article'}</h2>
             <button onClick={() => setEditing(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X size={18} /></button>
@@ -66,11 +105,19 @@ export default function NewsManagePage() {
           <div className="space-y-4">
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Title</label><input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Excerpt</label><textarea value={form.excerpt} onChange={e => setForm({...form, excerpt: e.target.value})} rows={2} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Content</label><textarea value={form.content} onChange={e => setForm({...form, content: e.target.value})} rows={4} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
-            <div className="grid grid-cols-3 gap-4">
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">Content</label><textarea value={form.content} onChange={e => setForm({...form, content: e.target.value})} rows={6} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
+            <div className="grid grid-cols-2 gap-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Date</label><input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label><input value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label><input value={form.image} onChange={e => setForm({...form, image: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue" /></div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+              <div className="flex gap-3 items-start">
+                <input type="file" ref={fileRef} onChange={handleFileSelect} accept="image/*" className="text-sm" />
+                {uploading && <Loader2 size={16} className="animate-spin text-brand-blue mt-2" />}
+              </div>
+              {form.image && <img src={form.image} alt="Preview" className="w-32 h-20 object-cover rounded-xl mt-2" />}
+              <input value={form.image} onChange={e => setForm({...form, image: e.target.value})} placeholder="Or paste image URL" className="w-full mt-2 px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm" />
             </div>
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setEditing(null)} className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
@@ -86,16 +133,23 @@ export default function NewsManagePage() {
         <table className="w-full">
           <thead className="bg-gray-50"><tr>
             <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Title</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Status</th>
             <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Category</th>
             <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Date</th>
             <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">Actions</th>
           </tr></thead>
           <tbody className="divide-y divide-gray-100">
             {items.length === 0 ? (
-              <tr><td colSpan={4} className="text-center py-12 text-gray-400">No news articles yet.</td></tr>
+              <tr><td colSpan={5} className="text-center py-12 text-gray-400">No news articles yet.</td></tr>
             ) : items.map(item => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-dark">{item.title}</td>
+                <td className="px-6 py-4">
+                  <button onClick={() => togglePublish(item)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${item.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {item.published ? <Eye size={12} /> : <EyeOff size={12} />}
+                    {item.published ? 'Published' : 'Draft'}
+                  </button>
+                </td>
                 <td className="px-6 py-4 text-sm text-gray-500">{item.category}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{item.date}</td>
                 <td className="px-6 py-4 text-right">

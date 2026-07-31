@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Search } from 'lucide-react'
 import { navLinks } from '../../data/navigation'
 import SchoolLogo from '../common/SchoolLogo'
+import SearchModal from '../common/SearchModal'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
@@ -33,6 +35,15 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className={`p-2 rounded-lg transition-colors ${
+                scrolled ? 'text-gray-500 hover:text-brand-blue hover:bg-blue-50' : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+              aria-label="Open site search"
+            >
+              <Search size={20} />
+            </button>
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -78,6 +89,14 @@ export default function Navbar() {
             aria-label="Mobile navigation menu"
           >
             <div className="px-4 py-4 space-y-1">
+              <button
+                onClick={() => { setSearchOpen(true); setIsOpen(false) }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-brand-blue hover:bg-blue-50 transition-colors"
+                aria-label="Open site search"
+              >
+                <Search size={20} />
+                Search
+              </button>
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
@@ -96,6 +115,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   )
 }

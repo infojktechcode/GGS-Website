@@ -11,58 +11,86 @@ export default async function handler(req, res) {
     switch (action) {
       // ===== NEWS =====
       case 'list-news': {
-        const { data } = await supabase.from('news').select('*').order('created_at', { ascending: false })
-        return json(res, data)
+        const { search: q, category: cat, published: pub } = req.query
+        let query = supabase.from('news').select('*').order('created_at', { ascending: false })
+        if (q) query = query.or(`title.ilike.%${q}%,excerpt.ilike.%${q}%,content.ilike.%${q}%`)
+        if (cat) query = query.eq('category', cat)
+        if (pub === 'true') query = query.eq('published', true)
+        else if (pub === 'false') query = query.eq('published', false)
+        const { data, error } = await query
+        if (error) throw error
+        return json(res, data || [])
+      }
+      case 'toggle-publish-news': {
+        const { id, published } = req.body
+        const { data, error } = await supabase.from('news').update({ published, updated_at: new Date().toISOString() }).eq('id', id).select()
+        if (error) throw error
+        return json(res, data[0])
       }
       case 'save-news': {
         const { id, title, excerpt, content, date, category, image, published } = req.body
         if (id) {
-          const { data } = await supabase.from('news').update({ title, excerpt, content, date, category, image, published, updated_at: new Date().toISOString() }).eq('id', id).select()
+          const { data, error } = await supabase.from('news').update({ title, excerpt, content, date, category, image, published, updated_at: new Date().toISOString() }).eq('id', id).select()
+          if (error) throw error
           return json(res, data[0])
         }
-        const { data } = await supabase.from('news').insert({ title, excerpt, content, date, category, image }).select()
+        const { data, error } = await supabase.from('news').insert({ title, excerpt, content, date, category, image, published }).select()
+        if (error) throw error
         return json(res, data[0])
       }
       case 'delete-news': {
-        await supabase.from('news').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('news').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
       // ===== EVENTS =====
       case 'list-events': {
-        const { data } = await supabase.from('events').select('*').order('date', { ascending: true })
-        return json(res, data)
+        const { search: q, featured } = req.query
+        let query = supabase.from('events').select('*').order('date', { ascending: true })
+        if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+        if (featured === 'true') query = query.eq('featured', true)
+        const { data, error } = await query
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'save-event': {
         const { id, title, date, time, description } = req.body
         if (id) {
-          const { data } = await supabase.from('events').update({ title, date, time, description, updated_at: new Date().toISOString() }).eq('id', id).select()
+          const { data, error } = await supabase.from('events').update({ title, date, time, description, updated_at: new Date().toISOString() }).eq('id', id).select()
+          if (error) throw error
           return json(res, data[0])
         }
-        const { data } = await supabase.from('events').insert({ title, date, time, description }).select()
+        const { data, error } = await supabase.from('events').insert({ title, date, time, description }).select()
+        if (error) throw error
         return json(res, data[0])
       }
       case 'delete-event': {
-        await supabase.from('events').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('events').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
       // ===== TESTIMONIALS =====
       case 'list-testimonials': {
-        const { data } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false })
-        return json(res, data)
+        const { data, error } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false })
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'save-testimonial': {
         const { id, name, role, content, rating } = req.body
         if (id) {
-          const { data } = await supabase.from('testimonials').update({ name, role, content, rating, updated_at: new Date().toISOString() }).eq('id', id).select()
+          const { data, error } = await supabase.from('testimonials').update({ name, role, content, rating, updated_at: new Date().toISOString() }).eq('id', id).select()
+          if (error) throw error
           return json(res, data[0])
         }
-        const { data } = await supabase.from('testimonials').insert({ name, role, content, rating }).select()
+        const { data, error } = await supabase.from('testimonials').insert({ name, role, content, rating }).select()
+        if (error) throw error
         return json(res, data[0])
       }
       case 'delete-testimonial': {
-        await supabase.from('testimonials').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('testimonials').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
@@ -71,100 +99,120 @@ export default async function handler(req, res) {
         const { category } = req.query
         let query = supabase.from('gallery_images').select('*, gallery_categories(name)')
         if (category && category !== 'all') query = query.eq('category_id', category)
-        const { data: images } = await query.order('sort_order', { ascending: true })
-        const { data: cats } = await supabase.from('gallery_categories').select('*').order('sort_order')
-        return json(res, { images, categories: cats || [] })
+        const { data: images, error: imgErr } = await query.order('sort_order', { ascending: true })
+        if (imgErr) throw imgErr
+        const { data: cats, error: catErr } = await supabase.from('gallery_categories').select('*').order('sort_order')
+        if (catErr) throw catErr
+        return json(res, { images: images || [], categories: cats || [] })
       }
       case 'save-gallery': {
         const { id, title, alt, src, category_id, sort_order } = req.body
         if (id) {
-          const { data } = await supabase.from('gallery_images').update({ title, alt, src, category_id, sort_order }).eq('id', id).select()
+          const { data, error } = await supabase.from('gallery_images').update({ title, alt, src, category_id, sort_order }).eq('id', id).select()
+          if (error) throw error
           return json(res, data[0])
         }
-        const { data } = await supabase.from('gallery_images').insert({ title, alt, src, category_id, sort_order }).select()
+        const { data, error } = await supabase.from('gallery_images').insert({ title, alt, src, category_id, sort_order }).select()
+        if (error) throw error
         return json(res, data[0])
       }
       case 'delete-gallery': {
-        await supabase.from('gallery_images').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('gallery_images').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
       // ===== MESSAGES =====
       case 'list-messages': {
-        const { archived } = req.query
+        const { archived, search: q, read } = req.query
         let query = supabase.from('contact_messages').select('*').order('created_at', { ascending: false })
         if (archived === 'true') query = query.eq('is_archived', true)
         else query = query.eq('is_archived', false)
-        const { data } = await query
-        return json(res, data)
+        if (q) query = query.or(`name.ilike.%${q}%,email.ilike.%${q}%,subject.ilike.%${q}%,message.ilike.%${q}%`)
+        if (read === 'true') query = query.eq('is_read', true)
+        else if (read === 'false') query = query.eq('is_read', false)
+        const { data, error } = await query
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'update-message': {
         const { id, is_read, is_archived } = req.body
-        const { data } = await supabase.from('contact_messages').update({ is_read, is_archived }).eq('id', id).select()
+        const { data, error } = await supabase.from('contact_messages').update({ is_read, is_archived }).eq('id', id).select()
+        if (error) throw error
         return json(res, data[0])
       }
       case 'delete-message': {
-        await supabase.from('contact_messages').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('contact_messages').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
       // ===== ENQUIRIES =====
       case 'list-enquiries': {
         const { status: s, search } = req.query
-        let q = supabase.from('admission_enquiries').select('*').order('created_at', { ascending: false })
-        if (s && s !== 'all') q = q.eq('status', s)
-        if (search) q = q.or(`parent_name.ilike.%${search}%,email.ilike.%${search}%,child_name.ilike.%${search}%`)
-        const { data } = await q
-        return json(res, data)
+        let query = supabase.from('admission_enquiries').select('*').order('created_at', { ascending: false })
+        if (s && s !== 'all') query = query.eq('status', s)
+        if (search) query = query.or(`parent_name.ilike.%${search}%,email.ilike.%${search}%,child_name.ilike.%${search}%`)
+        const { data, error } = await query
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'update-enquiry': {
         const { id, status, notes } = req.body
         const updates = {}
         if (status) updates.status = status
         if (notes !== undefined) updates.notes = notes
-        const { data } = await supabase.from('admission_enquiries').update(updates).eq('id', id).select()
+        const { data, error } = await supabase.from('admission_enquiries').update(updates).eq('id', id).select()
+        if (error) throw error
         return json(res, data[0])
       }
       case 'delete-enquiry': {
-        await supabase.from('admission_enquiries').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('admission_enquiries').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
       // ===== SUBSCRIBERS =====
       case 'list-subscribers': {
-        const { data } = await supabase.from('newsletter_subscribers').select('*').order('created_at', { ascending: false })
-        return json(res, data)
+        const { data, error } = await supabase.from('newsletter_subscribers').select('*').order('created_at', { ascending: false })
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'delete-subscriber': {
-        await supabase.from('newsletter_subscribers').delete().eq('id', req.body.id)
+        const { error } = await supabase.from('newsletter_subscribers').delete().eq('id', req.body.id)
+        if (error) throw error
         return json(res, { success: true })
       }
 
       // ===== SITE CONTENT =====
       case 'list-content': {
         const { section } = req.query
-        let q = supabase.from('site_content').select('*')
-        if (section) q = q.eq('section', section)
-        const { data } = await q
-        return json(res, data)
+        let query = supabase.from('site_content').select('*')
+        if (section) query = query.eq('section', section)
+        const { data, error } = await query
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'save-content': {
         const { section, data: contentData } = req.body
-        const { data } = await supabase.from('site_content').upsert({ section, data: contentData, updated_at: new Date().toISOString() }, { onConflict: 'section' }).select()
+        const { data, error } = await supabase.from('site_content').upsert({ section, data: contentData, updated_at: new Date().toISOString() }, { onConflict: 'section' }).select()
+        if (error) throw error
         return json(res, data[0])
       }
 
       // ===== SETTINGS =====
       case 'get-settings': {
         const { key } = req.query
-        let q = supabase.from('site_settings').select('*')
-        if (key) q = q.eq('key', key)
-        const { data } = await q
-        return json(res, data)
+        let query = supabase.from('site_settings').select('*')
+        if (key) query = query.eq('key', key)
+        const { data, error } = await query
+        if (error) throw error
+        return json(res, data || [])
       }
       case 'save-settings': {
         const { key, value } = req.body
-        const { data } = await supabase.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' }).select()
+        const { data, error } = await supabase.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' }).select()
+        if (error) throw error
         return json(res, data[0])
       }
 
@@ -186,6 +234,10 @@ export default async function handler(req, res) {
         const { email, password } = req.body
         const { data, error } = await supabase.auth.admin.createUser({ email, password, email_confirm: true })
         if (error) throw error
+        await supabase.from('admin_roles').upsert(
+          { user_id: data.user.id, role: 'super_admin' },
+          { onConflict: 'user_id' }
+        )
         return json(res, { success: true, user: data.user.email })
       }
 
@@ -196,8 +248,8 @@ export default async function handler(req, res) {
         if (pgConnStr) { try { const pg = await import('pg').then(m => m.default); const pool = new pg.Pool({ connectionString: pgConnStr, max: 1, connectionTimeoutMillis: 5000 }); const c = await pool.connect(); await c.query('SELECT supabase_pgrest.refresh_schema_cache()'); c.release(); await pool.end(); refreshed = true } catch {} }
         const missingTables = []
         for (const t of tables) {
-          const { data, error } = await supabase.from(t).select('id').limit(1)
-          if (error && error.message?.includes('schema cache')) missingTables.push(t)
+          const { error } = await supabase.from(t).select('id').limit(1)
+          if (error) missingTables.push(t)
         }
         if (missingTables.length > 0) {
           return json(res, { success: false, missingTables, refreshed, fix: 'https://supabase.com/dashboard/project/mowhkxvmntoomljvrosb/sql/new' })
@@ -251,6 +303,22 @@ export default async function handler(req, res) {
           }
         }
         return json(res, status)
+      }
+
+      // ===== RECENT ACTIVITY (for dashboard) =====
+      case 'recent-activity': {
+        const results = await Promise.allSettled([
+          supabase.from('news').select('id,title,created_at,published').order('created_at', { ascending: false }).limit(5),
+          supabase.from('events').select('id,title,date,created_at').order('created_at', { ascending: false }).limit(5),
+          supabase.from('contact_messages').select('id,name,subject,created_at,is_read').order('created_at', { ascending: false }).limit(5),
+          supabase.from('admission_enquiries').select('id,parent_name,child_name,status,created_at').order('created_at', { ascending: false }).limit(5),
+        ])
+        return json(res, {
+          news: results[0].status === 'fulfilled' ? results[0].value.data || [] : [],
+          events: results[1].status === 'fulfilled' ? results[1].value.data || [] : [],
+          messages: results[2].status === 'fulfilled' ? results[2].value.data || [] : [],
+          enquiries: results[3].status === 'fulfilled' ? results[3].value.data || [] : [],
+        })
       }
 
       default:

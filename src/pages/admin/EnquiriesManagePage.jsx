@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Loader2, ChevronDown } from 'lucide-react'
+import { adminFetch, adminFetchAll } from '../../services/adminApi'
 
 const statuses = ['all', 'new', 'contacted', 'follow_up', 'enrolled', 'closed']
 
@@ -8,21 +9,24 @@ export default function EnquiriesManagePage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [error, setError] = useState('')
   useEffect(() => { load() }, [statusFilter, search])
 
   async function load() {
     try {
-      const params = new URLSearchParams()
-      if (statusFilter !== 'all') params.set('status', statusFilter)
-      if (search) params.set('search', search)
-      const res = await fetch(`/api/admin?action=list-enquiries&${params}`)
-      setEnquiries(await res.json())
-    } catch {} finally { setLoading(false) }
+      const params = {}
+      if (statusFilter !== 'all') params.status = statusFilter
+      if (search) params.search = search
+      const data = await adminFetchAll('list-enquiries', params)
+      setEnquiries(data)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   async function updateStatus(id, status) {
-    await fetch('/api/admin?action=update-enquiry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
-    await load()
+    try {
+      await adminFetch('update-enquiry', { body: { id, status } })
+      await load()
+    } catch (err) { setError(err.message) }
   }
 
   const unread = enquiries.filter(e => e.status === 'new').length
@@ -34,6 +38,8 @@ export default function EnquiriesManagePage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-heading font-bold text-dark">Admission Enquiries {unread > 0 && <span className="text-sm font-normal text-brand-blue">({unread} new)</span>}</h1>
       </div>
+
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>}
 
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="relative flex-1 min-w-[200px]">
